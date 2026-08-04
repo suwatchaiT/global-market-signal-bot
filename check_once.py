@@ -14,6 +14,8 @@ import data_feed
 import notifier
 import signals as sig_detector
 import usage_report
+import health_report
+import journal
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
@@ -47,6 +49,7 @@ def main():
         log.info("Outside alert window (%d:00-%d:00 local) — skipping signal checks.",
                  config.ALERT_START_HOUR, config.ALERT_END_HOUR)
         bot_commands.handle_commands(state)
+        health_report.maybe_send(state)
         usage_report.maybe_send_daily_report(state)
         STATE_FILE.write_text(json.dumps(state))
         return
@@ -57,7 +60,14 @@ def main():
             log.warning("Not enough data for %s, skipping.", symbol)
             continue
 
-        for s in sig_detector.detect(symbol, df):
+        journal.evaluate(state, symbol, df)
+        higher_df = data_feed.get_rates(symbol, timeframe=config.HIGHER_TIMEFRAME)
+        if config.REQUIRE_HTF_CONFIRMATION and (higher_df is None or len(higher_df) < 50):
+            log.warning("Not enough %s confirmation data for %s, skipping.",
+                        config.HIGHER_TIMEFRAME, symbol)
+            continue
+
+        for s in sig_detector.detect(symbol, df, higher_df):
             key = f"{s.symbol}|{s.signal_type}|{s.direction}"
             if now - state.get(key, 0) < COOLDOWN_SECONDS:
                 log.info("Cooldown active, skipping: %s", key)
@@ -65,11 +75,13 @@ def main():
             log.info("Signal: %s — %s", key, s.detail)
             if notifier.send(s):
                 state[key] = now
+                journal.record(state, s)
                 sent += 1
             else:
                 log.warning("Telegram send failed for %s", key)
 
     bot_commands.handle_commands(state)
+    health_report.maybe_send(state)
     usage_report.maybe_send_daily_report(state)
 
     STATE_FILE.write_text(json.dumps(state))

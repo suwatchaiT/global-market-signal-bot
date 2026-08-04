@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 import pandas as pd
 import yfinance as yf
 import config
@@ -29,7 +30,8 @@ _TIMEFRAME_MAP = {
     "M15": ("15m", "10d"),
     "M30": ("30m", "20d"),
     "H1": ("1h", "40d"),
-    "H4": ("4h", "150d"),
+    # Yahoo has no native 4h interval; download 1h and resample below.
+    "H4": ("1h", "150d"),
     "D1": ("1d", "1y"),
 }
 
@@ -38,8 +40,33 @@ def yahoo_ticker(symbol: str) -> str:
     return _SYMBOL_MAP.get(symbol.upper(), symbol)
 
 
+_CANDLE_MINUTES = {"M5": 5, "M15": 15, "M30": 30, "H1": 60, "H4": 240, "D1": 1440}
+
+
+def _closed_only(df: pd.DataFrame, timeframe: str) -> pd.DataFrame:
+    """Remove a currently-forming final candle."""
+    if df.empty or "time" not in df.columns:
+        return df
+    last_open = pd.Timestamp(df["time"].iloc[-1])
+    if last_open.tzinfo is None:
+        last_open = last_open.tz_localize("UTC")
+    close_at = last_open + pd.Timedelta(minutes=_CANDLE_MINUTES.get(timeframe, 60))
+    now = pd.Timestamp(datetime.now(timezone.utc))
+    return df.iloc[:-1] if now < close_at else df
+
+
+def _resample_h4(df: pd.DataFrame) -> pd.DataFrame:
+    indexed = df.set_index(pd.to_datetime(df["time"], utc=True))
+    out = indexed.resample("4h").agg({
+        "open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"
+    }).dropna(subset=["open", "high", "low", "close"])
+    out["time"] = out.index
+    return out.reset_index(drop=True)
+
+
 def get_rates(symbol: str, count: int = 200, timeframe: str | None = None) -> pd.DataFrame | None:
-    interval, period = _TIMEFRAME_MAP.get(timeframe or config.TIMEFRAME, ("1h", "40d"))
+    selected_timeframe = (timeframe or config.TIMEFRAME).upper()
+    interval, period = _TIMEFRAME_MAP.get(selected_timeframe, ("1h", "40d"))
     try:
         df = yf.download(
             yahoo_ticker(symbol),
@@ -62,4 +89,7 @@ def get_rates(symbol: str, count: int = 200, timeframe: str | None = None) -> pd
     df = df.reset_index().rename(columns=str.lower)
     df = df.rename(columns={"datetime": "time", "date": "time"})
     df = df.dropna(subset=["close"])
+    if selected_timeframe == "H4":
+        df = _resample_h4(df)
+    df = _closed_only(df, selected_timeframe)
     return df.tail(count).reset_index(drop=True)

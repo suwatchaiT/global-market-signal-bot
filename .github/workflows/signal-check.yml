@@ -3,10 +3,11 @@ name: Signal check
 on:
   schedule:
     # Alert window 9:00-17:00 Thailand (UTC+7) = 02:00-10:00 UTC
-    - cron: "*/15 2-9 * * *"
-    - cron: "0 10 * * *"
-    # Daily status report at 8:30 Thailand = 01:30 UTC
-    - cron: "30 1 * * *"
+    # Offset from the top of the hour to reduce GitHub scheduler congestion.
+    - cron: "7,22,37,52 2-9 * * *"
+    - cron: "7 10 * * *"
+    # Daily status report around 8:37 Thailand = 01:37 UTC
+    - cron: "37 1 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -16,16 +17,23 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      ACCOUNT_BALANCE: ${{ vars.ACCOUNT_BALANCE || '10000' }}
+      RISK_PERCENT: ${{ vars.RISK_PERCENT || '1' }}
+      HIGHER_TIMEFRAME: ${{ vars.HIGHER_TIMEFRAME || 'H4' }}
+      REQUIRE_HTF_CONFIRMATION: ${{ vars.REQUIRE_HTF_CONFIRMATION || 'true' }}
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Restore alert state
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: state.json
           key: signal-state-${{ github.run_id }}
@@ -43,7 +51,7 @@ jobs:
 
       - name: Save alert state
         if: always()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: state.json
           key: signal-state-${{ github.run_id }}

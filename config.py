@@ -42,5 +42,17 @@ ALERT_END_HOUR = int(os.getenv("ALERT_END_HOUR", "17"))
 # scheduled runs (GitHub may delay cron by hours); cooldown dedupes repeats.
 LOOKBACK_BARS = int(os.getenv("LOOKBACK_BARS", "6"))
 
+# Signal-quality filters. Signals are calculated from closed candles only.
+HIGHER_TIMEFRAME = os.getenv("HIGHER_TIMEFRAME", "H4")
+REQUIRE_HTF_CONFIRMATION = os.getenv("REQUIRE_HTF_CONFIRMATION", "true").lower() in (
+    "1", "true", "yes", "on"
+)
+
+# Risk-based position sizing. Estimates assume ACCOUNT_CURRENCY=USD and the
+# standard contract sizes defined in risk.py; confirm the lot size with broker specs.
+ACCOUNT_BALANCE = float(os.getenv("ACCOUNT_BALANCE", "10000"))
+RISK_PERCENT = float(os.getenv("RISK_PERCENT", "1"))
+ACCOUNT_CURRENCY = os.getenv("ACCOUNT_CURRENCY", "USD").upper()
+
 # Poll interval in seconds
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "60"))

@@ -1,0 +1,28 @@
+name: Monthly repository maintenance
+
+on:
+  schedule:
+    # Keep scheduled workflows active in public repositories (1st of each month).
+    - cron: "17 0 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rotate maintenance issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh label create bot-maintenance --color 1D76DB --description "Automated bot maintenance" --force
+          gh issue list --label bot-maintenance --state open --json number --jq '.[].number' \
+            | xargs -r -n1 gh issue close --comment "Superseded by the new monthly maintenance check."
+          gh issue create \
+            --title "Monthly signal-bot maintenance — $(date -u +'%Y-%m')" \
+            --label bot-maintenance \
+            --body "Automated activity check: scheduled signal and heartbeat workflows remain configured."

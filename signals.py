@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 import pandas as pd
 
 import config
+import risk
 
 
 @dataclass
@@ -20,6 +21,9 @@ class Signal:
     tp: float = 0.0
     rr: float = 0.0
     context: list[str] = field(default_factory=list)  # indicator readings
+    risk_amount: float = 0.0
+    position_units: float = 0.0
+    lot_size: float = 0.0
 
 
 def _ema(series: pd.Series, period: int) -> pd.Series:
@@ -43,7 +47,7 @@ def _atr(df: pd.DataFrame, period: int) -> float:
     return float(tr.rolling(period).mean().iloc[-1])
 
 
-def detect(symbol: str, df: pd.DataFrame) -> list[Signal]:
+def detect(symbol: str, df: pd.DataFrame, higher_df: pd.DataFrame | None = None) -> list[Signal]:
     close = df["close"]
     price = float(close.iloc[-1])
 
@@ -104,11 +108,24 @@ def detect(symbol: str, df: pd.DataFrame) -> list[Signal]:
     rsi_state = "BUY" if curr_rsi < 50 else "SELL"  # room to move up/down
     macd_state = "BUY" if macd_line.iloc[-1] > signal_line.iloc[-1] else "SELL"
 
+    htf_state = ""
+    if higher_df is not None and len(higher_df) >= config.MA_SLOW:
+        higher_close = higher_df["close"]
+        higher_fast = _ema(higher_close, config.MA_FAST).iloc[-1]
+        higher_slow = _ema(higher_close, config.MA_SLOW).iloc[-1]
+        htf_state = "BUY" if higher_fast > higher_slow else "SELL"
+    if config.REQUIRE_HTF_CONFIRMATION and not htf_state:
+        return []
+
     context = [
         f"EMA{config.MA_FAST}/{config.MA_SLOW}: {'bullish' if ma_state == 'BUY' else 'bearish'}",
         f"RSI: {curr_rsi:.1f}",
         f"MACD: {'above' if macd_state == 'BUY' else 'below'} signal line",
     ]
+    if htf_state:
+        context.append(
+            f"{config.HIGHER_TIMEFRAME} trend: {'bullish' if htf_state == 'BUY' else 'bearish'}"
+        )
 
     atr = _atr(df, config.ATR_PERIOD)
     candle_time = str(df["time"].iloc[-1]) if "time" in df.columns else ""
@@ -118,6 +135,8 @@ def detect(symbol: str, df: pd.DataFrame) -> list[Signal]:
     for direction in ("BUY", "SELL"):
         fired = [t for t in triggers if t[1] == direction]
         if not fired:
+            continue
+        if config.REQUIRE_HTF_CONFIRMATION and htf_state and htf_state != direction:
             continue
 
         # Confluence: how many of the three indicators currently agree
@@ -131,6 +150,7 @@ def detect(symbol: str, df: pd.DataFrame) -> list[Signal]:
             sl = price + config.ATR_SL_MULT * atr
             tp = price - config.ATR_TP_MULT * atr
         rr = config.ATR_TP_MULT / config.ATR_SL_MULT
+        risk_amount, position_units, lot_size = risk.estimate(symbol, price, sl)
 
         signals.append(Signal(
             symbol=symbol,
@@ -144,6 +164,9 @@ def detect(symbol: str, df: pd.DataFrame) -> list[Signal]:
             tp=tp,
             rr=rr,
             context=context,
+            risk_amount=risk_amount,
+            position_units=position_units,
+            lot_size=lot_size,
         ))
 
     return [s for s in signals if s.stars >= config.MIN_STARS]

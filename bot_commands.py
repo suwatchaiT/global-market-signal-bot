@@ -11,6 +11,7 @@ import requests
 import config
 import data_feed
 import notifier
+import journal
 from signals import _ema, _rsi
 
 log = logging.getLogger(__name__)
@@ -58,6 +59,8 @@ def handle_commands(state: dict) -> None:
             continue
         if text.startswith("/status") or text.startswith("/start"):
             status_requested = True
+        elif text.startswith("/performance"):
+            notifier.send_text(journal.summary(state))
 
     if status_requested:
         log.info("Status requested — sending report.")
