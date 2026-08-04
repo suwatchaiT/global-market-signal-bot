@@ -30,7 +30,7 @@ All settings live in `.env` — see `.env.example` for every option.
 |---|---|---|
 | `TELEGRAM_TOKEN` | — | BotFather token |
 | `TELEGRAM_CHAT_ID` | — | Your chat or channel ID |
-| `SYMBOLS` | `EURUSD,GBPUSD,XAUUSD` | Comma-separated symbols |
+| `SYMBOLS` | `EURUSD,GBPUSD,USDJPY,AUDUSD,USDCHF,XAUUSD,BTCUSD` | Comma-separated symbols |
 | `TIMEFRAME` | `H1` | M5 M15 M30 H1 H4 D1 |
 | `MA_FAST` / `MA_SLOW` | `9` / `21` | EMA periods |
 | `RSI_PERIOD` | `14` | RSI lookback |
@@ -51,7 +51,7 @@ Supported symbols: EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF, NZDUSD, XAUUS
 3. Message your bot, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` to find your `chat_id`
 
 For GitHub Actions, add `TELEGRAM_TOKEN` and `TELEGRAM_CHAT_ID` as repository
-secrets. Add `ACCOUNT_BALANCE`, `RISK_PERCENT`, `HIGHER_TIMEFRAME`, and
+secrets. Add `SYMBOLS`, `ACCOUNT_BALANCE`, `RISK_PERCENT`, `HIGHER_TIMEFRAME`, and
 `REQUIRE_HTF_CONFIRMATION` under **Settings → Secrets and variables → Actions →
 Variables** when you want values other than the defaults above.
 

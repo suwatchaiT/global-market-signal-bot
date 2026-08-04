@@ -8,7 +8,9 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
 # Symbols to monitor
-SYMBOLS = os.getenv("SYMBOLS", "EURUSD,GBPUSD,XAUUSD,BTCUSD").split(",")
+SYMBOLS = os.getenv(
+    "SYMBOLS", "EURUSD,GBPUSD,USDJPY,AUDUSD,USDCHF,XAUUSD,BTCUSD"
+).split(",")
 
 # Timeframe (M5, M15, M30, H1, H4, D1)
 TIMEFRAME = os.getenv("TIMEFRAME", "H1")

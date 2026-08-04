@@ -18,6 +18,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     env:
+      SYMBOLS: ${{ vars.SYMBOLS || 'EURUSD,GBPUSD,USDJPY,AUDUSD,USDCHF,XAUUSD,BTCUSD' }}
       ACCOUNT_BALANCE: ${{ vars.ACCOUNT_BALANCE || '10000' }}
       RISK_PERCENT: ${{ vars.RISK_PERCENT || '1' }}
       HIGHER_TIMEFRAME: ${{ vars.HIGHER_TIMEFRAME || 'H4' }}
