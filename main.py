@@ -45,7 +45,8 @@ def run():
                     log.warning("Not enough data for %s, skipping.", symbol)
                     continue
 
-                found = sig_detector.detect(symbol, df)
+                higher_df = data_feed.get_rates(symbol, timeframe=config.HIGHER_TIMEFRAME)
+                found = sig_detector.detect(symbol, df, higher_df)
                 for s in found:
                     if should_send(s):
                         log.info("Signal: %s %s %s — %s", s.symbol, s.signal_type, s.direction, s.detail)

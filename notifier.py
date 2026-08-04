@@ -76,6 +76,12 @@ def _format(signal: Signal) -> str:
         lines.append(
             f"Suggested SL: {signal.sl:.5f} | TP: {signal.tp:.5f} | R:R {signal.rr:.1f}"
         )
+    if signal.lot_size:
+        lines.append(
+            f"Estimated size: <b>{signal.lot_size:.3f} lots</b> "
+            f"({signal.position_units:,.0f} units) | Risk: ${signal.risk_amount:,.2f}"
+        )
+        lines.append("⚠️ Estimate only — confirm contract size and price with your broker.")
 
     return "\n".join(lines)
 

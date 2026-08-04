@@ -6,6 +6,10 @@ Monitors forex / gold / crypto prices for technical indicator signals and sends 
 - EMA crossover (fast/slow configurable)
 - RSI overbought / oversold zones
 - MACD signal-line crossover
+- Closed-candle evaluation with higher-timeframe trend confirmation
+- ATR stop/target and risk-based position-size estimates
+- Signal journal with `/performance` win-rate and R-multiple summary
+- Daily Telegram health heartbeat
 
 ## Setup
 
@@ -33,6 +37,10 @@ All settings live in `.env` — see `.env.example` for every option.
 | `RSI_OVERBOUGHT` / `RSI_OVERSOLD` | `70` / `30` | RSI thresholds |
 | `MACD_FAST` / `MACD_SLOW` / `MACD_SIGNAL` | `12` / `26` / `9` | MACD periods |
 | `POLL_INTERVAL` | `60` | Seconds between checks |
+| `HIGHER_TIMEFRAME` | `H4` | Trend-confirmation timeframe |
+| `REQUIRE_HTF_CONFIRMATION` | `true` | Reject signals against the higher-timeframe EMA trend |
+| `ACCOUNT_BALANCE` | `10000` | Balance used only for position-size estimates |
+| `RISK_PERCENT` | `1` | Estimated account risk per signal |
 
 Supported symbols: EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF, NZDUSD, XAUUSD (gold), XAGUSD (silver), BTCUSD, ETHUSD. Other Yahoo Finance tickers can be used directly (e.g. `AAPL`, `^GSPC`).
 
@@ -42,8 +50,18 @@ Supported symbols: EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF, NZDUSD, XAUUS
 2. Copy the token to `TELEGRAM_TOKEN`
 3. Message your bot, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` to find your `chat_id`
 
+For GitHub Actions, add `TELEGRAM_TOKEN` and `TELEGRAM_CHAT_ID` as repository
+secrets. Add `ACCOUNT_BALANCE`, `RISK_PERCENT`, `HIGHER_TIMEFRAME`, and
+`REQUIRE_HTF_CONFIRMATION` under **Settings → Secrets and variables → Actions →
+Variables** when you want values other than the defaults above.
+
 ## Notes
 
 - Yahoo Finance intraday data is slightly delayed (~1–15 min depending on market); fine for indicator alerts, not for HFT.
 - Identical alerts are rate-limited to once per hour.
+- Position sizes are estimates. Confirm contract size, spread, currency conversion,
+  and execution price with your broker before trading.
+- `/performance` measures later closed-candle SL/TP touches, not actual broker fills.
+- A monthly maintenance workflow rotates a GitHub issue to keep public-repository
+  scheduled workflows active and visible.
 - Logs are written to `bot.log`.
