@@ -9,12 +9,16 @@ _CONTRACT_SIZE = {
     "BTCUSD": 1.0,
     "ETHUSD": 1.0,
 }
+_INDEX_SYMBOLS = {"THAISET", "US500", "NAS100", "NIKKEI225", "SHANGHAI"}
 
 
 def estimate(symbol: str, entry: float, stop: float) -> tuple[float, float, float]:
     """Return (risk money, units, lots). This is an estimate, not an order."""
     risk_money = config.ACCOUNT_BALANCE * config.RISK_PERCENT / 100
     distance = abs(entry - stop)
+    # Index CFD contract sizes differ by broker, so do not show a misleading lot estimate.
+    if symbol.upper() in _INDEX_SYMBOLS:
+        return risk_money, 0.0, 0.0
     if distance <= 0 or config.ACCOUNT_CURRENCY != "USD":
         return risk_money, 0.0, 0.0
 

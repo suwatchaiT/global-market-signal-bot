@@ -21,6 +21,11 @@ _SYMBOL_MAP = {
     "XAGUSD": "SI=F",   # silver futures
     "BTCUSD": "BTC-USD",
     "ETHUSD": "ETH-USD",
+    "THAISET": "^SET.BK",
+    "US500": "^GSPC",
+    "NAS100": "^NDX",
+    "NIKKEI225": "^N225",
+    "SHANGHAI": "000001.SS",
 }
 
 # Map MT5-style timeframes to yfinance (interval, period) pairs.

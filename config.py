@@ -9,7 +9,9 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
 # Symbols to monitor
 SYMBOLS = os.getenv(
-    "SYMBOLS", "EURUSD,GBPUSD,USDJPY,AUDUSD,USDCHF,XAUUSD,BTCUSD"
+    "SYMBOLS",
+    "EURUSD,GBPUSD,USDJPY,AUDUSD,USDCHF,XAUUSD,BTCUSD,"
+    "THAISET,US500,NAS100,NIKKEI225,SHANGHAI",
 ).split(",")
 
 # Timeframe (M5, M15, M30, H1, H4, D1)
@@ -39,6 +41,9 @@ MIN_STARS = int(os.getenv("MIN_STARS", "1"))
 TZ_OFFSET = int(os.getenv("TZ_OFFSET", "7"))  # Thailand
 ALERT_START_HOUR = int(os.getenv("ALERT_START_HOUR", "9"))
 ALERT_END_HOUR = int(os.getenv("ALERT_END_HOUR", "17"))
+# Additional window for US indices. This range wraps across midnight.
+US_ALERT_START_HOUR = int(os.getenv("US_ALERT_START_HOUR", "20"))
+US_ALERT_END_HOUR = int(os.getenv("US_ALERT_END_HOUR", "4"))
 
 # How many recent bars to scan for trigger events. Covers gaps between
 # scheduled runs (GitHub may delay cron by hours); cooldown dedupes repeats.

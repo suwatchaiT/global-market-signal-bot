@@ -6,6 +6,9 @@ on:
     # Offset from the top of the hour to reduce GitHub scheduler congestion.
     - cron: "7,22,37,52 2-9 * * *"
     - cron: "7 10 * * *"
+    # US market window 20:00-04:00 Thailand = 13:00-21:00 UTC
+    - cron: "7,22,37,52 13-20 * * *"
+    - cron: "7 21 * * *"
     # Daily status report around 8:37 Thailand = 01:37 UTC
     - cron: "37 1 * * *"
   workflow_dispatch:
@@ -18,7 +21,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     env:
-      SYMBOLS: ${{ vars.SYMBOLS || 'EURUSD,GBPUSD,USDJPY,AUDUSD,USDCHF,XAUUSD,BTCUSD' }}
+      SYMBOLS: ${{ vars.SYMBOLS || 'EURUSD,GBPUSD,USDJPY,AUDUSD,USDCHF,XAUUSD,BTCUSD,THAISET,US500,NAS100,NIKKEI225,SHANGHAI' }}
       ACCOUNT_BALANCE: ${{ vars.ACCOUNT_BALANCE || '10000' }}
       RISK_PERCENT: ${{ vars.RISK_PERCENT || '1' }}
       HIGHER_TIMEFRAME: ${{ vars.HIGHER_TIMEFRAME || 'H4' }}
