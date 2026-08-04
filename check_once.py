@@ -35,9 +35,19 @@ def load_state() -> dict:
     return {}
 
 
+def _hour_in_window(hour: int, start: int, end: int) -> bool:
+    if start <= end:
+        return start <= hour <= end
+    return hour >= start or hour <= end
+
+
 def in_alert_window() -> bool:
     local_hour = (time.gmtime().tm_hour + config.TZ_OFFSET) % 24
-    return config.ALERT_START_HOUR <= local_hour <= config.ALERT_END_HOUR
+    return _hour_in_window(
+        local_hour, config.ALERT_START_HOUR, config.ALERT_END_HOUR
+    ) or _hour_in_window(
+        local_hour, config.US_ALERT_START_HOUR, config.US_ALERT_END_HOUR
+    )
 
 
 def main():

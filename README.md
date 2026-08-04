@@ -30,7 +30,7 @@ All settings live in `.env` — see `.env.example` for every option.
 |---|---|---|
 | `TELEGRAM_TOKEN` | — | BotFather token |
 | `TELEGRAM_CHAT_ID` | — | Your chat or channel ID |
-| `SYMBOLS` | `EURUSD,GBPUSD,XAUUSD` | Comma-separated symbols |
+| `SYMBOLS` | Forex, metals, crypto, and five indices | Comma-separated symbols |
 | `TIMEFRAME` | `H1` | M5 M15 M30 H1 H4 D1 |
 | `MA_FAST` / `MA_SLOW` | `9` / `21` | EMA periods |
 | `RSI_PERIOD` | `14` | RSI lookback |
@@ -42,7 +42,9 @@ All settings live in `.env` — see `.env.example` for every option.
 | `ACCOUNT_BALANCE` | `10000` | Balance used only for position-size estimates |
 | `RISK_PERCENT` | `1` | Estimated account risk per signal |
 
-Supported symbols: EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF, NZDUSD, XAUUSD (gold), XAGUSD (silver), BTCUSD, ETHUSD. Other Yahoo Finance tickers can be used directly (e.g. `AAPL`, `^GSPC`).
+Supported symbols include EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF,
+NZDUSD, XAUUSD, XAGUSD, BTCUSD, ETHUSD, THAISET, US500, NAS100,
+NIKKEI225, and SHANGHAI. Other Yahoo Finance tickers can be used directly.
 
 ## Telegram setup
 
@@ -51,7 +53,7 @@ Supported symbols: EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF, NZDUSD, XAUUS
 3. Message your bot, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` to find your `chat_id`
 
 For GitHub Actions, add `TELEGRAM_TOKEN` and `TELEGRAM_CHAT_ID` as repository
-secrets. Add `ACCOUNT_BALANCE`, `RISK_PERCENT`, `HIGHER_TIMEFRAME`, and
+secrets. Add `SYMBOLS`, `ACCOUNT_BALANCE`, `RISK_PERCENT`, `HIGHER_TIMEFRAME`, and
 `REQUIRE_HTF_CONFIRMATION` under **Settings → Secrets and variables → Actions →
 Variables** when you want values other than the defaults above.
 
@@ -61,6 +63,7 @@ Variables** when you want values other than the defaults above.
 - Identical alerts are rate-limited to once per hour.
 - Position sizes are estimates. Confirm contract size, spread, currency conversion,
   and execution price with your broker before trading.
+- Index alerts intentionally omit lot-size estimates because CFD contract sizes vary by broker.
 - `/performance` measures later closed-candle SL/TP touches, not actual broker fills.
 - A monthly maintenance workflow rotates a GitHub issue to keep public-repository
   scheduled workflows active and visible.
