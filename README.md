@@ -9,6 +9,7 @@ Monitors forex / gold / crypto prices for technical indicator signals and sends 
 - Closed-candle evaluation with higher-timeframe trend confirmation
 - ATR stop/target and risk-based position-size estimates
 - Signal journal with `/performance` win-rate and R-multiple summary
+- Per-signal Telegram table with `/performance` or `/performance 20`
 - Daily Telegram health heartbeat
 
 ## Setup

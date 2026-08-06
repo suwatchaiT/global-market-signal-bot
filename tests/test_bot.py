@@ -85,6 +85,28 @@ class RiskTests(unittest.TestCase):
 
 
 class JournalTests(unittest.TestCase):
+    def test_performance_table_contains_signal_details(self):
+        state = {"signal_journal": [{
+            "symbol": "EURUSD", "direction": "BUY", "signal_type": "MA_CROSS",
+            "opened_at": "2026-01-01T00:00:00+00:00", "closed_at": "2026-01-01T02:00:00+00:00",
+            "entry": 1.1, "sl": 1.09, "tp": 1.12, "status": "WIN", "r_multiple": 2.0,
+        }]}
+        table = journal.performance_table(state)
+        self.assertIn("EURUSD BUY", table)
+        self.assertIn("WIN (+2.0R)", table)
+        self.assertIn("Entry 1.10000", table)
+        self.assertIn("Closed 01/01 09:00", table)
+
+    def test_performance_table_caps_rows_at_twenty(self):
+        row = {
+            "symbol": "BTCUSD", "direction": "BUY", "signal_type": "RSI",
+            "opened_at": "2026-01-01T00:00:00+00:00", "entry": 1,
+            "sl": 0.9, "tp": 1.2, "status": "OPEN",
+        }
+        table = journal.performance_table({"signal_journal": [dict(row) for _ in range(25)]}, 99)
+        self.assertIn("newest 20", table)
+        self.assertNotIn("<b>21.", table)
+
     def test_take_profit_records_win(self):
         state: dict = {}
         signal = Signal(

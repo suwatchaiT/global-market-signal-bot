@@ -50,6 +50,7 @@ def handle_commands(state: dict) -> None:
         return
 
     status_requested = False
+    performance_limit: int | None = None
     for u in updates:
         state["last_update_id"] = u["update_id"]
         msg = u.get("message") or {}
@@ -60,8 +61,25 @@ def handle_commands(state: dict) -> None:
         if text.startswith("/status") or text.startswith("/start"):
             status_requested = True
         elif text.startswith("/performance"):
-            notifier.send_text(journal.summary(state))
+            parts = text.split()
+            try:
+                performance_limit = int(parts[1]) if len(parts) > 1 else 15
+            except ValueError:
+                performance_limit = 15
 
     if status_requested:
         log.info("Status requested — sending report.")
-        notifier.send_text(_build_status())
+        if not notifier.send_text(_build_status()):
+            log.warning("Status report delivery failed.")
+
+    if performance_limit is not None:
+        performance_limit = max(1, min(performance_limit, 20))
+        log.info("Performance requested — sending summary and %d recent rows.",
+                 performance_limit)
+        summary_ok = notifier.send_text(journal.summary(state))
+        table_ok = notifier.send_text(journal.performance_table(state, performance_limit))
+        if summary_ok and table_ok:
+            log.info("Performance summary and table delivered successfully.")
+        else:
+            log.warning("Performance delivery failed (summary=%s, table=%s).",
+                        summary_ok, table_ok)
