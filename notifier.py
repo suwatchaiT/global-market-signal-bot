@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import math
+import logging
 from datetime import datetime, timezone, timedelta
 
 import requests
 
 import config
 from signals import Signal
+
+log = logging.getLogger(__name__)
 
 _TH_TZ = timezone(timedelta(hours=config.TZ_OFFSET))
 _DIRECTION_EMOJI = {"BUY": "🟢", "SELL": "🔴"}
@@ -133,6 +136,7 @@ def _send_chart(signal: Signal) -> None:
 
 def send_text(text: str) -> bool:
     if not config.TELEGRAM_TOKEN or not config.TELEGRAM_CHAT_ID:
+        log.warning("Telegram text not sent: token or chat ID missing.")
         return False
     url = f"https://api.telegram.org/bot{config.TELEGRAM_TOKEN}/sendMessage"
     payload = {
@@ -142,6 +146,11 @@ def send_text(text: str) -> bool:
     }
     try:
         r = requests.post(url, json=payload, timeout=10)
-        return r.status_code == 200
-    except requests.RequestException:
+        if r.status_code == 200:
+            return True
+        log.warning("Telegram sendMessage rejected request: HTTP %d — %.300s",
+                    r.status_code, r.text)
+        return False
+    except requests.RequestException as e:
+        log.warning("Telegram sendMessage request failed: %s", e)
         return False
