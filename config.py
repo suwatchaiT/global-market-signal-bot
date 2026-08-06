@@ -39,11 +39,15 @@ MIN_STARS = int(os.getenv("MIN_STARS", "1"))
 # sent between ALERT_START_HOUR and ALERT_END_HOUR; /status and the daily
 # report still work outside the window.
 TZ_OFFSET = int(os.getenv("TZ_OFFSET", "7"))  # Thailand
-ALERT_START_HOUR = int(os.getenv("ALERT_START_HOUR", "9"))
+ALERT_START_HOUR = int(os.getenv("ALERT_START_HOUR", "8"))
+ALERT_START_MINUTE = int(os.getenv("ALERT_START_MINUTE", "30"))
 ALERT_END_HOUR = int(os.getenv("ALERT_END_HOUR", "17"))
-# Additional window for US indices. This range wraps across midnight.
+ALERT_END_MINUTE = int(os.getenv("ALERT_END_MINUTE", "0"))
+# User-selected evening window.
 US_ALERT_START_HOUR = int(os.getenv("US_ALERT_START_HOUR", "20"))
-US_ALERT_END_HOUR = int(os.getenv("US_ALERT_END_HOUR", "4"))
+US_ALERT_START_MINUTE = int(os.getenv("US_ALERT_START_MINUTE", "0"))
+US_ALERT_END_HOUR = int(os.getenv("US_ALERT_END_HOUR", "23"))
+US_ALERT_END_MINUTE = int(os.getenv("US_ALERT_END_MINUTE", "0"))
 
 # How many recent bars to scan for trigger events. Covers gaps between
 # scheduled runs (GitHub may delay cron by hours); cooldown dedupes repeats.

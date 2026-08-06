@@ -35,18 +35,21 @@ def load_state() -> dict:
     return {}
 
 
-def _hour_in_window(hour: int, start: int, end: int) -> bool:
+def _minute_in_window(minute: int, start: int, end: int) -> bool:
     if start <= end:
-        return start <= hour <= end
-    return hour >= start or hour <= end
+        return start <= minute <= end
+    return minute >= start or minute <= end
 
 
 def in_alert_window() -> bool:
-    local_hour = (time.gmtime().tm_hour + config.TZ_OFFSET) % 24
-    return _hour_in_window(
-        local_hour, config.ALERT_START_HOUR, config.ALERT_END_HOUR
-    ) or _hour_in_window(
-        local_hour, config.US_ALERT_START_HOUR, config.US_ALERT_END_HOUR
+    utc = time.gmtime()
+    local_minute = (((utc.tm_hour + config.TZ_OFFSET) % 24) * 60) + utc.tm_min
+    daytime_start = config.ALERT_START_HOUR * 60 + config.ALERT_START_MINUTE
+    daytime_end = config.ALERT_END_HOUR * 60 + config.ALERT_END_MINUTE
+    evening_start = config.US_ALERT_START_HOUR * 60 + config.US_ALERT_START_MINUTE
+    evening_end = config.US_ALERT_END_HOUR * 60 + config.US_ALERT_END_MINUTE
+    return _minute_in_window(local_minute, daytime_start, daytime_end) or _minute_in_window(
+        local_minute, evening_start, evening_end
     )
 
 
@@ -56,8 +59,14 @@ def main():
     sent = 0
 
     if not in_alert_window():
-        log.info("Outside alert window (%d:00-%d:00 local) — skipping signal checks.",
-                 config.ALERT_START_HOUR, config.ALERT_END_HOUR)
+        log.info(
+            "Outside alert windows (%02d:%02d-%02d:%02d and %02d:%02d-%02d:%02d local) "
+            "— skipping signal checks.",
+            config.ALERT_START_HOUR, config.ALERT_START_MINUTE,
+            config.ALERT_END_HOUR, config.ALERT_END_MINUTE,
+            config.US_ALERT_START_HOUR, config.US_ALERT_START_MINUTE,
+            config.US_ALERT_END_HOUR, config.US_ALERT_END_MINUTE,
+        )
         bot_commands.handle_commands(state)
         health_report.maybe_send(state)
         usage_report.maybe_send_daily_report(state)
