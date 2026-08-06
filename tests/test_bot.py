@@ -22,6 +22,7 @@ sys.modules.setdefault(
 )
 
 import data_feed
+import config
 import journal
 import risk
 import check_once
@@ -43,6 +44,10 @@ class DataFeedTests(unittest.TestCase):
 
 
 class AlertWindowTests(unittest.TestCase):
+    def test_default_active_market_windows(self):
+        self.assertEqual((config.ALERT_START_HOUR, config.ALERT_END_HOUR), (7, 17))
+        self.assertEqual((config.US_ALERT_START_HOUR, config.US_ALERT_END_HOUR), (19, 4))
+
     def test_daytime_window(self):
         self.assertTrue(check_once._hour_in_window(12, 9, 17))
         self.assertFalse(check_once._hour_in_window(18, 9, 17))

@@ -2,15 +2,14 @@ name: Signal check
 
 on:
   schedule:
-    # Alert window 9:00-17:00 Thailand (UTC+7) = 02:00-10:00 UTC
+    # Asian/Thailand/early-London window 07:00-17:00 Thailand = 00:00-10:00 UTC
     # Offset from the top of the hour to reduce GitHub scheduler congestion.
-    - cron: "7,22,37,52 2-9 * * *"
+    - cron: "7,22,37,52 0-9 * * *"
     - cron: "7 10 * * *"
-    # US market window 20:00-04:00 Thailand = 13:00-21:00 UTC
-    - cron: "7,22,37,52 13-20 * * *"
+    # London/New York and US-market window 19:00-04:00 Thailand = 12:00-21:00 UTC
+    - cron: "7,22,37,52 12-20 * * *"
     - cron: "7 21 * * *"
-    # Daily status report around 8:37 Thailand = 01:37 UTC
-    - cron: "37 1 * * *"
+    # The 01:37 UTC daytime run also sends the daily 08:37 Thailand heartbeat.
   workflow_dispatch:
 
 concurrency:

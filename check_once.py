@@ -56,8 +56,12 @@ def main():
     sent = 0
 
     if not in_alert_window():
-        log.info("Outside alert window (%d:00-%d:00 local) — skipping signal checks.",
-                 config.ALERT_START_HOUR, config.ALERT_END_HOUR)
+        log.info(
+            "Outside alert windows (%02d:00-%02d:00 and %02d:00-%02d:00 local) "
+            "— skipping signal checks.",
+            config.ALERT_START_HOUR, config.ALERT_END_HOUR,
+            config.US_ALERT_START_HOUR, config.US_ALERT_END_HOUR,
+        )
         bot_commands.handle_commands(state)
         health_report.maybe_send(state)
         usage_report.maybe_send_daily_report(state)
