@@ -45,17 +45,27 @@ class DataFeedTests(unittest.TestCase):
 
 class AlertWindowTests(unittest.TestCase):
     def test_default_active_market_windows(self):
-        self.assertEqual((config.ALERT_START_HOUR, config.ALERT_END_HOUR), (7, 17))
-        self.assertEqual((config.US_ALERT_START_HOUR, config.US_ALERT_END_HOUR), (19, 4))
+        self.assertEqual(
+            (config.ALERT_START_HOUR, config.ALERT_START_MINUTE,
+             config.ALERT_END_HOUR, config.ALERT_END_MINUTE),
+            (8, 30, 17, 0),
+        )
+        self.assertEqual(
+            (config.US_ALERT_START_HOUR, config.US_ALERT_START_MINUTE,
+             config.US_ALERT_END_HOUR, config.US_ALERT_END_MINUTE),
+            (20, 0, 23, 0),
+        )
 
     def test_daytime_window(self):
-        self.assertTrue(check_once._hour_in_window(12, 9, 17))
-        self.assertFalse(check_once._hour_in_window(18, 9, 17))
+        self.assertFalse(check_once._minute_in_window(8 * 60 + 29, 8 * 60 + 30, 17 * 60))
+        self.assertTrue(check_once._minute_in_window(8 * 60 + 30, 8 * 60 + 30, 17 * 60))
+        self.assertTrue(check_once._minute_in_window(17 * 60, 8 * 60 + 30, 17 * 60))
+        self.assertFalse(check_once._minute_in_window(17 * 60 + 1, 8 * 60 + 30, 17 * 60))
 
     def test_overnight_window_wraps_midnight(self):
-        self.assertTrue(check_once._hour_in_window(22, 20, 4))
-        self.assertTrue(check_once._hour_in_window(2, 20, 4))
-        self.assertFalse(check_once._hour_in_window(12, 20, 4))
+        self.assertTrue(check_once._minute_in_window(22 * 60, 20 * 60, 4 * 60))
+        self.assertTrue(check_once._minute_in_window(2 * 60, 20 * 60, 4 * 60))
+        self.assertFalse(check_once._minute_in_window(12 * 60, 20 * 60, 4 * 60))
 
 
 class RiskTests(unittest.TestCase):

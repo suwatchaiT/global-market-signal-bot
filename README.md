@@ -41,8 +41,10 @@ All settings live in `.env` — see `.env.example` for every option.
 | `REQUIRE_HTF_CONFIRMATION` | `true` | Reject signals against the higher-timeframe EMA trend |
 | `ACCOUNT_BALANCE` | `10000` | Balance used only for position-size estimates |
 | `RISK_PERCENT` | `1` | Estimated account risk per signal |
-| `ALERT_START_HOUR` / `ALERT_END_HOUR` | `7` / `17` | Asian/Thailand daytime window (Thailand time) |
-| `US_ALERT_START_HOUR` / `US_ALERT_END_HOUR` | `19` / `4` | London/New York window, wrapping midnight |
+| `ALERT_START_HOUR` / `ALERT_START_MINUTE` | `8` / `30` | Daytime-window start (Thailand time) |
+| `ALERT_END_HOUR` / `ALERT_END_MINUTE` | `17` / `0` | Daytime-window end |
+| `US_ALERT_START_HOUR` / `US_ALERT_START_MINUTE` | `20` / `0` | Evening-window start |
+| `US_ALERT_END_HOUR` / `US_ALERT_END_MINUTE` | `23` / `0` | Evening-window end |
 
 Supported symbols include EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF,
 NZDUSD, XAUUSD, XAGUSD, BTCUSD, ETHUSD, THAISET, US500, NAS100,
@@ -66,8 +68,8 @@ Variables** when you want values other than the defaults above.
 - Position sizes are estimates. Confirm contract size, spread, currency conversion,
   and execution price with your broker before trading.
 - Index alerts intentionally omit lot-size estimates because CFD contract sizes vary by broker.
-- GitHub checks every 15 minutes from 07:00-17:00 and 19:00-04:00 Thailand
-  time. The two-hour 17:00-19:00 break avoids a lower-priority transition period.
+- GitHub checks every 15 minutes during the user-selected 08:30-17:00 and
+  20:00-23:00 Thailand-time windows.
 - `/performance` measures later closed-candle SL/TP touches, not actual broker fills.
 - A monthly maintenance workflow rotates a GitHub issue to keep public-repository
   scheduled workflows active and visible.
