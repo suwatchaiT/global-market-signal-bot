@@ -1,4 +1,4 @@
-name: Signal check
+name: Global market signal check
 
 on:
   schedule:
