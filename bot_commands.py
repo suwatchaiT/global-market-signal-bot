@@ -1,6 +1,6 @@
 """Handle incoming Telegram commands (processed once per scheduled run).
 
-Supported: /status — replies with current price and indicator readings.
+Supported: /status and /performance [limit].
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 def _build_status() -> str:
-    lines = ["📊 <b>Signal Bot Status</b>", f"Timeframe: {config.TIMEFRAME}", ""]
+    lines = ["📊 <b>Global Market Signal Bot Status</b>", f"Timeframe: {config.TIMEFRAME}", ""]
     for symbol in config.SYMBOLS:
         df = data_feed.get_rates(symbol)
         if df is None or len(df) < 50:
