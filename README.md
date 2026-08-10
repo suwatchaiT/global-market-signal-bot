@@ -1,8 +1,11 @@
-# Signal Bot
+# Global Market Signal Bot
 
-Monitors forex / gold / crypto prices for technical indicator signals and sends Telegram alerts. Cross-platform (macOS, Linux, Windows) — uses Yahoo Finance data, no MT5 terminal or broker account needed.
+[![Signal check](https://github.com/suwatchaiT/global-market-signal-bot/actions/workflows/signal-check.yml/badge.svg)](https://github.com/suwatchaiT/global-market-signal-bot/actions/workflows/signal-check.yml)
+![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue)
 
-**Signals detected**
+A GitHub-hosted technical-analysis bot that monitors global forex, metals, cryptocurrency, and stock-index markets, then sends Telegram alerts and performance reports. It uses Yahoo Finance data and GitHub Actions, so no MT5 terminal, broker account, server, or always-awake computer is required.
+
+## Strategy and features
 - EMA crossover (fast/slow configurable)
 - RSI overbought / oversold zones
 - MACD signal-line crossover
@@ -47,9 +50,16 @@ All settings live in `.env` — see `.env.example` for every option.
 | `US_ALERT_START_HOUR` / `US_ALERT_START_MINUTE` | `20` / `0` | Evening-window start |
 | `US_ALERT_END_HOUR` / `US_ALERT_END_MINUTE` | `23` / `0` | Evening-window end |
 
-Supported symbols include EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF,
-NZDUSD, XAUUSD, XAGUSD, BTCUSD, ETHUSD, THAISET, US500, NAS100,
-NIKKEI225, and SHANGHAI. Other Yahoo Finance tickers can be used directly.
+## Default watchlist
+
+| Market | Symbols |
+|---|---|
+| Forex | EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF |
+| Metals | XAUUSD |
+| Cryptocurrency | BTCUSD |
+| Indices | THAISET, US500, NAS100, NIKKEI225, SHANGHAI |
+
+Other supported symbols include USDCAD, NZDUSD, XAGUSD, and ETHUSD. Yahoo Finance tickers can also be used directly.
 
 ## Telegram setup
 
@@ -62,7 +72,15 @@ secrets. Add `SYMBOLS`, `ACCOUNT_BALANCE`, `RISK_PERCENT`, `HIGHER_TIMEFRAME`, a
 `REQUIRE_HTF_CONFIRMATION` under **Settings → Secrets and variables → Actions →
 Variables** when you want values other than the defaults above.
 
-## Notes
+## Telegram commands
+
+| Command | Result |
+|---|---|
+| `/status` | Current prices, EMA trend, and RSI for every monitored symbol |
+| `/performance` | Overall result plus the latest 15 recorded signals |
+| `/performance 20` | Overall result plus the latest 20 recorded signals |
+
+## Important limitations
 
 - Yahoo Finance intraday data is slightly delayed (~1–15 min depending on market); fine for indicator alerts, not for HFT.
 - Identical alerts are rate-limited to once per hour.
@@ -74,4 +92,9 @@ Variables** when you want values other than the defaults above.
 - `/performance` measures later closed-candle SL/TP touches, not actual broker fills.
 - A monthly maintenance workflow rotates a GitHub issue to keep public-repository
   scheduled workflows active and visible.
+- Signals are informational and are not financial advice. Test the strategy and manage risk before using real money.
 - Logs are written to `bot.log`.
+
+## License
+
+This repository currently has no license file. All rights remain with the repository owner unless a license is added.

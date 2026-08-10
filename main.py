@@ -32,7 +32,7 @@ def should_send(signal: sig_detector.Signal) -> bool:
 def run():
     log.info("Monitoring: %s on %s", config.SYMBOLS, config.TIMEFRAME)
     notifier.send_text(
-        f"🤖 <b>Signal Bot started</b>\n"
+        f"🤖 <b>Global Market Signal Bot started</b>\n"
         f"Symbols: {', '.join(config.SYMBOLS)}\n"
         f"Timeframe: {config.TIMEFRAME}"
     )
@@ -58,7 +58,7 @@ def run():
 
     except KeyboardInterrupt:
         log.info("Bot stopped by user.")
-        notifier.send_text("🛑 Signal Bot stopped.")
+        notifier.send_text("🛑 Global Market Signal Bot stopped.")
 
 
 if __name__ == "__main__":
