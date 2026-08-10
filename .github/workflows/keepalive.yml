@@ -1,4 +1,4 @@
-name: Monthly repository maintenance
+name: Global market bot maintenance
 
 on:
   schedule:
@@ -19,10 +19,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh label create bot-maintenance --color 1D76DB --description "Automated bot maintenance" --force
+          gh label create bot-maintenance --color 1D76DB --description "Automated global market bot maintenance" --force
           gh issue list --label bot-maintenance --state open --json number --jq '.[].number' \
             | xargs -r -n1 gh issue close --comment "Superseded by the new monthly maintenance check."
           gh issue create \
-            --title "Monthly signal-bot maintenance — $(date -u +'%Y-%m')" \
+            --title "Monthly global-market-bot maintenance — $(date -u +'%Y-%m')" \
             --label bot-maintenance \
-            --body "Automated activity check: scheduled signal and heartbeat workflows remain configured."
+            --body "Automated activity check: scheduled global-market signal and heartbeat workflows remain configured."
