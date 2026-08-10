@@ -30,7 +30,7 @@ def maybe_send(state: dict) -> None:
 
     status = "✅ Healthy" if not unavailable else "⚠️ Partial data failure"
     text = (
-        f"💓 <b>Daily Bot Heartbeat — {status}</b>\n"
+        f"💓 <b>Global Market Bot Heartbeat — {status}</b>\n"
         f"Timeframe: {config.TIMEFRAME} | Confirmation: {config.HIGHER_TIMEFRAME}\n"
         f"Symbols online: {len(available)}/{len(config.SYMBOLS)}\n"
         + (" | ".join(latest) if latest else "No market data available")
