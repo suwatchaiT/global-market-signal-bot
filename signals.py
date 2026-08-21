@@ -84,10 +84,8 @@ def detect(symbol: str, df: pd.DataFrame, higher_df: pd.DataFrame | None = None)
             triggers.append(("RSI", "BUY", f"RSI exited oversold zone ({r_c:.1f}){bar_label(c)}"))
         elif r_p >= config.RSI_OVERBOUGHT and r_c < config.RSI_OVERBOUGHT:
             triggers.append(("RSI", "SELL", f"RSI exited overbought zone ({r_c:.1f}){bar_label(c)}"))
-        elif r_p >= config.RSI_OVERSOLD and r_c < config.RSI_OVERSOLD:
-            triggers.append(("RSI", "SELL", f"RSI entered oversold zone ({r_c:.1f}){bar_label(c)}"))
-        elif r_p <= config.RSI_OVERBOUGHT and r_c > config.RSI_OVERBOUGHT:
-            triggers.append(("RSI", "BUY", f"RSI entered overbought zone ({r_c:.1f}){bar_label(c)}"))
+        # Entering an extreme is not a reversal confirmation. Wait for RSI to
+        # leave the zone instead of buying overbought or selling oversold.
 
         if macd_line.iloc[p] < signal_line.iloc[p] and macd_line.iloc[c] > signal_line.iloc[c]:
             triggers.append(("MACD_CROSS", "BUY", f"MACD crossed above signal line{bar_label(c)}"))
