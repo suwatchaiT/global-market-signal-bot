@@ -42,6 +42,11 @@ class DataFeedTests(unittest.TestCase):
         self.assertEqual(data_feed.yahoo_ticker("NAS100"), "^NDX")
         self.assertEqual(data_feed.yahoo_ticker("NIKKEI225"), "^N225")
         self.assertEqual(data_feed.yahoo_ticker("SHANGHAI"), "000001.SS")
+        self.assertEqual(data_feed.yahoo_ticker("DOW30"), "^DJI")
+        self.assertEqual(data_feed.yahoo_ticker("FTSE100"), "^FTSE")
+        self.assertEqual(data_feed.yahoo_ticker("DAX40"), "^GDAXI")
+        self.assertEqual(data_feed.yahoo_ticker("HANGSENG"), "^HSI")
+        self.assertEqual(data_feed.yahoo_ticker("ASX200"), "^AXJO")
 
 
 class AlertWindowTests(unittest.TestCase):
@@ -70,6 +75,14 @@ class AlertWindowTests(unittest.TestCase):
 
 
 class IndexReportTests(unittest.TestCase):
+    def test_top_ten_indices_are_price_reports(self):
+        expected = {
+            "THAISET", "US500", "NAS100", "DOW30", "FTSE100", "DAX40",
+            "NIKKEI225", "SHANGHAI", "HANGSENG", "ASX200",
+        }
+        self.assertEqual(index_report.INDEX_SYMBOLS, expected)
+        self.assertTrue(all(index_report.is_index(symbol) for symbol in expected))
+
     def test_session_event_windows(self):
         self.assertEqual(
             index_report.due_event(
