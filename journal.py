@@ -5,6 +5,7 @@ from datetime import datetime, timezone, timedelta
 
 import pandas as pd
 
+import config
 from signals import Signal
 
 MAX_RECORDS = 500
@@ -13,6 +14,11 @@ _TH_TZ = timezone(timedelta(hours=7))
 
 def records(state: dict) -> list[dict]:
     return state.setdefault("signal_journal", [])
+
+
+def analysis_records(state: dict) -> list[dict]:
+    excluded = {symbol.upper() for symbol in config.INDEX_REPORT_SYMBOLS}
+    return [row for row in records(state) if row.get("symbol", "").upper() not in excluded]
 
 
 def deduplicate(state: dict) -> int:
@@ -90,7 +96,7 @@ def evaluate(state: dict, symbol: str, df: pd.DataFrame) -> None:
 
 def summary(state: dict) -> str:
     deduplicate(state)
-    rows = records(state)
+    rows = analysis_records(state)
     closed = [r for r in rows if r.get("status") in ("WIN", "LOSS")]
     wins = sum(r["status"] == "WIN" for r in closed)
     losses = len(closed) - wins
@@ -103,7 +109,7 @@ def summary(state: dict) -> str:
         f"Closed: <b>{len(closed)}</b> ({wins} wins / {losses} losses)\n"
         f"Win rate: <b>{win_rate:.1f}%</b>\n"
         f"Net result: <b>{net_r:+.1f}R</b>\n"
-        "Based on candle SL/TP touches; not broker execution results."
+        "Indices excluded; based on candle SL/TP touches, not broker fills."
     )
 
 
@@ -126,7 +132,7 @@ def _price(value: float) -> str:
 def performance_table(state: dict, limit: int = 15) -> str:
     """Return recent per-signal results formatted for Telegram HTML."""
     deduplicate(state)
-    rows = records(state)
+    rows = analysis_records(state)
     limit = max(1, min(int(limit), 20))
     selected = list(reversed(rows[-limit:]))
     if not selected:
