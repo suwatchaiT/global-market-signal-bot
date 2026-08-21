@@ -87,6 +87,10 @@ def main():
             continue
 
         for s in sig_detector.detect(symbol, df, higher_df):
+            if journal.contains(state, s):
+                log.info("Signal candle already recorded, skipping: %s %s %s",
+                         s.symbol, s.direction, s.candle_time)
+                continue
             key = f"{s.symbol}|{s.signal_type}|{s.direction}"
             if now - state.get(key, 0) < COOLDOWN_SECONDS:
                 log.info("Cooldown active, skipping: %s", key)
