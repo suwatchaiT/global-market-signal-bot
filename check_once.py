@@ -16,6 +16,7 @@ import signals as sig_detector
 import usage_report
 import health_report
 import journal
+import index_report
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
@@ -58,6 +59,8 @@ def main():
     now = time.time()
     sent = 0
 
+    index_report.maybe_send(state)
+
     if not in_alert_window():
         log.info(
             "Outside alert windows (%02d:%02d-%02d:%02d and %02d:%02d-%02d:%02d local) "
@@ -74,6 +77,8 @@ def main():
         return
 
     for symbol in config.SYMBOLS:
+        if index_report.is_index(symbol):
+            continue
         df = data_feed.get_rates(symbol)
         if df is None or len(df) < 50:
             log.warning("Not enough data for %s, skipping.", symbol)
