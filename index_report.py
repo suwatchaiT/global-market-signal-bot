@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 # symbol: (exchange timezone, regular-session open, regular-session close)
 SESSIONS = {
-    "THAISET": ("Asia/Bangkok", time(10, 0), time(16, 30)),
+    "THAISET": ("Asia/Bangkok", time(10, 0), time(16, 40)),
     "NIKKEI225": ("Asia/Tokyo", time(9, 0), time(15, 30)),
     "SHANGHAI": ("Asia/Shanghai", time(9, 30), time(15, 0)),
     "US500": ("America/New_York", time(9, 30), time(16, 0)),
