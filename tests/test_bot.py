@@ -27,7 +27,7 @@ import journal
 import index_report
 import risk
 import check_once
-from signals import Signal
+from signals import Signal, _macd_confirms
 
 
 class DataFeedTests(unittest.TestCase):
@@ -114,6 +114,19 @@ class IndexReportTests(unittest.TestCase):
             ),
             (102.0, 103.0, 100.0),
         )
+
+
+class SignalFilterTests(unittest.TestCase):
+    @patch("config.REQUIRE_MACD_CONFIRMATION", True)
+    def test_macd_must_agree_when_confirmation_enabled(self):
+        self.assertTrue(_macd_confirms("BUY", "BUY"))
+        self.assertTrue(_macd_confirms("SELL", "SELL"))
+        self.assertFalse(_macd_confirms("BUY", "SELL"))
+        self.assertFalse(_macd_confirms("SELL", "BUY"))
+
+    @patch("config.REQUIRE_MACD_CONFIRMATION", False)
+    def test_macd_filter_can_be_disabled(self):
+        self.assertTrue(_macd_confirms("BUY", "SELL"))
 
 
 class RiskTests(unittest.TestCase):
