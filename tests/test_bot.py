@@ -85,6 +85,25 @@ class RiskTests(unittest.TestCase):
 
 
 class JournalTests(unittest.TestCase):
+    def test_duplicate_signal_ids_are_recorded_once(self):
+        state: dict = {}
+        signal = Signal(
+            "THAISET", "RSI", "SELL", "test", price=1200,
+            candle_time="2026-08-07T16:00:00+07:00", sl=1210, tp=1180,
+            stars=2,
+        )
+        journal.record(state, signal)
+        journal.record(state, signal)
+        self.assertEqual(len(journal.records(state)), 1)
+        self.assertTrue(journal.contains(state, signal))
+        self.assertEqual(journal.records(state)[0]["stars"], 2)
+
+    def test_existing_duplicate_rows_are_compacted(self):
+        row = {"id": "EURUSD|BUY|same-candle", "status": "LOSS"}
+        state = {"signal_journal": [dict(row), dict(row), dict(row)]}
+        self.assertEqual(journal.deduplicate(state), 2)
+        self.assertEqual(len(journal.records(state)), 1)
+
     def test_performance_table_contains_signal_details(self):
         state = {"signal_journal": [{
             "symbol": "EURUSD", "direction": "BUY", "signal_type": "MA_CROSS",
