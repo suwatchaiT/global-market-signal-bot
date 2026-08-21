@@ -15,12 +15,37 @@ def records(state: dict) -> list[dict]:
     return state.setdefault("signal_journal", [])
 
 
+def deduplicate(state: dict) -> int:
+    """Remove repeated journal rows while preserving the first observation."""
+    rows = records(state)
+    unique: list[dict] = []
+    seen: set[str] = set()
+    for item in rows:
+        signal_id = item.get("id")
+        if signal_id and signal_id in seen:
+            continue
+        if signal_id:
+            seen.add(signal_id)
+        unique.append(item)
+    state["signal_journal"] = unique[-MAX_RECORDS:]
+    return len(rows) - len(unique)
+
+
+def contains(state: dict, signal: Signal) -> bool:
+    signal_id = f"{signal.symbol}|{signal.direction}|{signal.candle_time}"
+    return any(item.get("id") == signal_id for item in records(state))
+
+
 def record(state: dict, signal: Signal) -> None:
+    deduplicate(state)
+    if contains(state, signal):
+        return
     records(state).append({
         "id": f"{signal.symbol}|{signal.direction}|{signal.candle_time}",
         "symbol": signal.symbol,
         "direction": signal.direction,
         "signal_type": signal.signal_type,
+        "stars": signal.stars,
         "opened_at": signal.candle_time or datetime.now(timezone.utc).isoformat(),
         "entry": signal.price,
         "sl": signal.sl,
@@ -38,6 +63,7 @@ def evaluate(state: dict, symbol: str, df: pd.DataFrame) -> None:
     If both levels occur within one candle, count SL first (conservative because
     OHLC data cannot reveal which level was touched first).
     """
+    deduplicate(state)
     if df is None or df.empty or "time" not in df.columns:
         return
     times = pd.to_datetime(df["time"], utc=True)
@@ -63,6 +89,7 @@ def evaluate(state: dict, symbol: str, df: pd.DataFrame) -> None:
 
 
 def summary(state: dict) -> str:
+    deduplicate(state)
     rows = records(state)
     closed = [r for r in rows if r.get("status") in ("WIN", "LOSS")]
     wins = sum(r["status"] == "WIN" for r in closed)
@@ -98,6 +125,7 @@ def _price(value: float) -> str:
 
 def performance_table(state: dict, limit: int = 15) -> str:
     """Return recent per-signal results formatted for Telegram HTML."""
+    deduplicate(state)
     rows = records(state)
     limit = max(1, min(int(limit), 20))
     selected = list(reversed(rows[-limit:]))
