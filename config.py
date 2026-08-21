@@ -14,6 +14,15 @@ SYMBOLS = os.getenv(
     "THAISET,US500,NAS100,NIKKEI225,SHANGHAI",
 ).split(",")
 
+# Stock indices receive open/close price reports but no technical trade signals.
+INDEX_REPORT_SYMBOLS = tuple(
+    value.strip().upper()
+    for value in os.getenv(
+        "INDEX_REPORT_SYMBOLS", "THAISET,US500,NAS100,NIKKEI225,SHANGHAI"
+    ).split(",")
+    if value.strip()
+)
+
 # Timeframe (M5, M15, M30, H1, H4, D1)
 TIMEFRAME = os.getenv("TIMEFRAME", "H1")
 
