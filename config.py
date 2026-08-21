@@ -11,14 +11,17 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 SYMBOLS = os.getenv(
     "SYMBOLS",
     "EURUSD,GBPUSD,USDJPY,AUDUSD,USDCHF,XAUUSD,BTCUSD,"
-    "THAISET,US500,NAS100,NIKKEI225,SHANGHAI",
+    "THAISET,US500,NAS100,DOW30,FTSE100,DAX40,"
+    "NIKKEI225,SHANGHAI,HANGSENG,ASX200",
 ).split(",")
 
 # Stock indices receive open/close price reports but no technical trade signals.
 INDEX_REPORT_SYMBOLS = tuple(
     value.strip().upper()
     for value in os.getenv(
-        "INDEX_REPORT_SYMBOLS", "THAISET,US500,NAS100,NIKKEI225,SHANGHAI"
+        "INDEX_REPORT_SYMBOLS",
+        "THAISET,US500,NAS100,DOW30,FTSE100,DAX40,"
+        "NIKKEI225,SHANGHAI,HANGSENG,ASX200"
     ).split(",")
     if value.strip()
 )
