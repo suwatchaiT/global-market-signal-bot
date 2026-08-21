@@ -11,8 +11,20 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 SYMBOLS = os.getenv(
     "SYMBOLS",
     "EURUSD,GBPUSD,USDJPY,AUDUSD,USDCHF,XAUUSD,BTCUSD,"
-    "THAISET,US500,NAS100,NIKKEI225,SHANGHAI",
+    "THAISET,US500,NAS100,DOW30,FTSE100,DAX40,"
+    "NIKKEI225,SHANGHAI,HANGSENG,ASX200",
 ).split(",")
+
+# Stock indices receive open/close price reports but no technical trade signals.
+INDEX_REPORT_SYMBOLS = tuple(
+    value.strip().upper()
+    for value in os.getenv(
+        "INDEX_REPORT_SYMBOLS",
+        "THAISET,US500,NAS100,DOW30,FTSE100,DAX40,"
+        "NIKKEI225,SHANGHAI,HANGSENG,ASX200"
+    ).split(",")
+    if value.strip()
+)
 
 # Timeframe (M5, M15, M30, H1, H4, D1)
 TIMEFRAME = os.getenv("TIMEFRAME", "H1")
@@ -32,8 +44,9 @@ ATR_PERIOD = int(os.getenv("ATR_PERIOD", "14"))
 ATR_SL_MULT = float(os.getenv("ATR_SL_MULT", "1.5"))
 ATR_TP_MULT = float(os.getenv("ATR_TP_MULT", "3.0"))
 
-# Minimum confluence stars (1-3) required to send an alert
-MIN_STARS = int(os.getenv("MIN_STARS", "1"))
+# Minimum confluence stars (1-3) required to send an alert. Two avoids
+# sending a signal when only the triggering indicator supports the direction.
+MIN_STARS = int(os.getenv("MIN_STARS", "2"))
 
 # Alert window in local time (TZ_OFFSET hours from UTC). Alerts are only
 # sent between ALERT_START_HOUR and ALERT_END_HOUR; /status and the daily

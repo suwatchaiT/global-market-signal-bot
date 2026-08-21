@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import unittest
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timezone
 from unittest.mock import patch
 import sys
 import types
@@ -24,6 +24,7 @@ sys.modules.setdefault(
 import data_feed
 import config
 import journal
+import index_report
 import risk
 import check_once
 from signals import Signal
@@ -41,6 +42,11 @@ class DataFeedTests(unittest.TestCase):
         self.assertEqual(data_feed.yahoo_ticker("NAS100"), "^NDX")
         self.assertEqual(data_feed.yahoo_ticker("NIKKEI225"), "^N225")
         self.assertEqual(data_feed.yahoo_ticker("SHANGHAI"), "000001.SS")
+        self.assertEqual(data_feed.yahoo_ticker("DOW30"), "^DJI")
+        self.assertEqual(data_feed.yahoo_ticker("FTSE100"), "^FTSE")
+        self.assertEqual(data_feed.yahoo_ticker("DAX40"), "^GDAXI")
+        self.assertEqual(data_feed.yahoo_ticker("HANGSENG"), "^HSI")
+        self.assertEqual(data_feed.yahoo_ticker("ASX200"), "^AXJO")
 
 
 class AlertWindowTests(unittest.TestCase):
@@ -68,6 +74,48 @@ class AlertWindowTests(unittest.TestCase):
         self.assertFalse(check_once._minute_in_window(12 * 60, 20 * 60, 4 * 60))
 
 
+class IndexReportTests(unittest.TestCase):
+    def test_top_ten_indices_are_price_reports(self):
+        expected = {
+            "THAISET", "US500", "NAS100", "DOW30", "FTSE100", "DAX40",
+            "NIKKEI225", "SHANGHAI", "HANGSENG", "ASX200",
+        }
+        self.assertEqual(index_report.INDEX_SYMBOLS, expected)
+        self.assertTrue(all(index_report.is_index(symbol) for symbol in expected))
+
+    def test_session_event_windows(self):
+        self.assertEqual(
+            index_report.due_event(
+                datetime(2026, 8, 21, 9, 45), time(9, 30), time(16, 0)
+            ),
+            "OPEN",
+        )
+        self.assertEqual(
+            index_report.due_event(
+                datetime(2026, 8, 21, 16, 15), time(9, 30), time(16, 0)
+            ),
+            "CLOSE",
+        )
+        self.assertIsNone(
+            index_report.due_event(
+                datetime(2026, 8, 22, 9, 45), time(9, 30), time(16, 0)
+            )
+        )
+
+    def test_session_price_change_inputs(self):
+        df = pd.DataFrame([
+            {"time": "2026-08-20T19:55:00Z", "open": 100, "close": 100},
+            {"time": "2026-08-21T13:30:00Z", "open": 102, "close": 102.5},
+            {"time": "2026-08-21T13:35:00Z", "open": 102.5, "close": 103},
+        ])
+        self.assertEqual(
+            index_report._session_stats(
+                df, "America/New_York", date(2026, 8, 21)
+            ),
+            (102.0, 103.0, 100.0),
+        )
+
+
 class RiskTests(unittest.TestCase):
     @patch("config.ACCOUNT_BALANCE", 10_000)
     @patch("config.RISK_PERCENT", 1)
@@ -85,6 +133,36 @@ class RiskTests(unittest.TestCase):
 
 
 class JournalTests(unittest.TestCase):
+    def test_duplicate_signal_ids_are_recorded_once(self):
+        state: dict = {}
+        signal = Signal(
+            "THAISET", "RSI", "SELL", "test", price=1200,
+            candle_time="2026-08-07T16:00:00+07:00", sl=1210, tp=1180,
+            stars=2,
+        )
+        journal.record(state, signal)
+        journal.record(state, signal)
+        self.assertEqual(len(journal.records(state)), 1)
+        self.assertTrue(journal.contains(state, signal))
+        self.assertEqual(journal.records(state)[0]["stars"], 2)
+
+    def test_existing_duplicate_rows_are_compacted(self):
+        row = {"id": "EURUSD|BUY|same-candle", "status": "LOSS"}
+        state = {"signal_journal": [dict(row), dict(row), dict(row)]}
+        self.assertEqual(journal.deduplicate(state), 2)
+        self.assertEqual(len(journal.records(state)), 1)
+
+    @patch("config.INDEX_REPORT_SYMBOLS", ("THAISET", "US500"))
+    def test_indices_are_excluded_from_performance(self):
+        state = {"signal_journal": [
+            {"id": "THAISET|BUY|1", "symbol": "THAISET", "status": "LOSS"},
+            {"id": "EURUSD|BUY|2", "symbol": "EURUSD", "status": "WIN",
+             "direction": "BUY", "signal_type": "RSI", "opened_at": "2026-01-01",
+             "entry": 1.1, "sl": 1.0, "tp": 1.3, "r_multiple": 2.0},
+        ]}
+        self.assertNotIn("THAISET", journal.performance_table(state))
+        self.assertIn("1 wins / 0 losses", journal.summary(state))
+
     def test_performance_table_contains_signal_details(self):
         state = {"signal_journal": [{
             "symbol": "EURUSD", "direction": "BUY", "signal_type": "MA_CROSS",

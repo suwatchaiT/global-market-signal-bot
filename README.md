@@ -13,6 +13,7 @@ A GitHub-hosted technical-analysis bot that monitors global forex, metals, crypt
 - ATR stop/target and risk-based position-size estimates
 - Signal journal with `/performance` win-rate and R-multiple summary
 - Per-signal Telegram table with `/performance` or `/performance 20`
+- Stock-index open/close price-change reports (excluded from trade signals)
 - Daily Telegram health heartbeat
 
 ## Setup
@@ -34,11 +35,13 @@ All settings live in `.env` — see `.env.example` for every option.
 |---|---|---|
 | `TELEGRAM_TOKEN` | — | BotFather token |
 | `TELEGRAM_CHAT_ID` | — | Your chat or channel ID |
-| `SYMBOLS` | Forex, metals, crypto, and five indices | Comma-separated symbols |
+| `SYMBOLS` | Forex, metals, crypto, and ten indices | Comma-separated monitored symbols |
+| `INDEX_REPORT_SYMBOLS` | Ten stock indices | Price reports only; excluded from trade signals and performance |
 | `TIMEFRAME` | `H1` | M5 M15 M30 H1 H4 D1 |
 | `MA_FAST` / `MA_SLOW` | `9` / `21` | EMA periods |
 | `RSI_PERIOD` | `14` | RSI lookback |
 | `RSI_OVERBOUGHT` / `RSI_OVERSOLD` | `70` / `30` | RSI thresholds |
+| `MIN_STARS` | `2` | Minimum agreeing indicators required for an alert |
 | `MACD_FAST` / `MACD_SLOW` / `MACD_SIGNAL` | `12` / `26` / `9` | MACD periods |
 | `POLL_INTERVAL` | `60` | Seconds between checks |
 | `HIGHER_TIMEFRAME` | `H4` | Trend-confirmation timeframe |
@@ -57,7 +60,7 @@ All settings live in `.env` — see `.env.example` for every option.
 | Forex | EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF |
 | Metals | XAUUSD |
 | Cryptocurrency | BTCUSD |
-| Indices | THAISET, US500, NAS100, NIKKEI225, SHANGHAI |
+| Indices | THAISET, US500, NAS100, DOW30, FTSE100, DAX40, NIKKEI225, SHANGHAI, HANGSENG, ASX200 |
 
 Other supported symbols include USDCAD, NZDUSD, XAGUSD, and ETHUSD. Yahoo Finance tickers can also be used directly.
 
@@ -89,7 +92,8 @@ Variables** when you want values other than the defaults above.
 - Index alerts intentionally omit lot-size estimates because CFD contract sizes vary by broker.
 - GitHub checks every 15 minutes during the user-selected 08:30-17:00 and
   20:00-23:00 Thailand-time windows.
-- `/performance` measures later closed-candle SL/TP touches, not actual broker fills.
+- `/performance` measures later closed-candle SL/TP touches, not actual broker fills. Stock indices are excluded.
+- THAISET, US500, NAS100, NIKKEI225, and SHANGHAI send open/close price changes versus the prior session close instead of trade signals.
 - A monthly maintenance workflow rotates a GitHub issue to keep public-repository
   scheduled workflows active and visible.
 - Signals are informational and are not financial advice. Test the strategy and manage risk before using real money.
