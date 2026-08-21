@@ -154,7 +154,7 @@ def detect(symbol: str, df: pd.DataFrame, higher_df: pd.DataFrame | None = None)
 
         signals.append(Signal(
             symbol=symbol,
-            signal_type="+".join(t[0] for t in fired),
+            signal_type="+".join(sorted(t[0] for t in fired)),
             direction=direction,
             detail="; ".join(t[2] for t in fired),
             price=price,
