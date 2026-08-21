@@ -93,11 +93,12 @@ def maybe_send(state: dict, now_utc: datetime | None = None) -> None:
             log.info("Index %s %s report waiting for session data.", symbol, event)
             continue
         open_price, current_price, previous_close = stats
-        change = ((current_price - previous_close) / previous_close) * 100
+        report_price = open_price if event == "OPEN" else current_price
+        change = ((report_price - previous_close) / previous_close) * 100
         marker = "🟢" if change >= 0 else "🔴"
-        price_label = "Opening" if event == "OPEN" else "Closing"
+        price_label = "Open" if event == "OPEN" else "Close"
         reports[event].append(
-            f"{marker} <b>{symbol.upper()}</b>: {price_label} {_price(current_price)} "
+            f"{marker} <b>{symbol.upper()}</b>: {price_label} {_price(report_price)} "
             f"| Prev close {_price(previous_close)} | {change:+.2f}%"
         )
         pending_keys[event].append(key)
