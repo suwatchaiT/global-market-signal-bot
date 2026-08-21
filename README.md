@@ -38,7 +38,8 @@ All settings live in `.env` — see `.env.example` for every option.
 | `TIMEFRAME` | `H1` | M5 M15 M30 H1 H4 D1 |
 | `MA_FAST` / `MA_SLOW` | `9` / `21` | EMA periods |
 | `RSI_PERIOD` | `14` | RSI lookback |
-| `RSI_OVERBOUGHT` / `RSI_OVERSOLD` | `70` / `30` | RSI thresholds |\n| `MIN_STARS` | `2` | Minimum agreeing indicators required for an alert |
+| `RSI_OVERBOUGHT` / `RSI_OVERSOLD` | `70` / `30` | RSI thresholds |
+| `MIN_STARS` | `2` | Minimum agreeing indicators required for an alert |
 | `MACD_FAST` / `MACD_SLOW` / `MACD_SIGNAL` | `12` / `26` / `9` | MACD periods |
 | `POLL_INTERVAL` | `60` | Seconds between checks |
 | `HIGHER_TIMEFRAME` | `H4` | Trend-confirmation timeframe |
