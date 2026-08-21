@@ -38,6 +38,10 @@ def _rsi(close: pd.Series, period: int) -> pd.Series:
     return 100 - (100 / (1 + rs))
 
 
+def _macd_confirms(direction: str, macd_state: str) -> bool:
+    return not config.REQUIRE_MACD_CONFIRMATION or macd_state == direction
+
+
 def _atr(df: pd.DataFrame, period: int) -> float:
     high, low, close = df["high"], df["low"], df["close"]
     prev_close = close.shift(1)
@@ -135,6 +139,8 @@ def detect(symbol: str, df: pd.DataFrame, higher_df: pd.DataFrame | None = None)
         if not fired:
             continue
         if config.REQUIRE_HTF_CONFIRMATION and htf_state and htf_state != direction:
+            continue
+        if not _macd_confirms(direction, macd_state):
             continue
 
         # Confluence: how many of the three indicators currently agree
