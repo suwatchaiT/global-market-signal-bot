@@ -20,6 +20,11 @@ SESSIONS = {
     "SHANGHAI": ("Asia/Shanghai", time(9, 30), time(15, 0)),
     "US500": ("America/New_York", time(9, 30), time(16, 0)),
     "NAS100": ("America/New_York", time(9, 30), time(16, 0)),
+    "DOW30": ("America/New_York", time(9, 30), time(16, 0)),
+    "FTSE100": ("Europe/London", time(8, 0), time(16, 30)),
+    "DAX40": ("Europe/Berlin", time(9, 0), time(17, 30)),
+    "HANGSENG": ("Asia/Hong_Kong", time(9, 30), time(16, 0)),
+    "ASX200": ("Australia/Sydney", time(10, 0), time(16, 0)),
 }
 INDEX_SYMBOLS = frozenset(SESSIONS)
 _EVENT_WINDOW_MINUTES = 75
