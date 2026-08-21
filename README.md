@@ -35,8 +35,8 @@ All settings live in `.env` — see `.env.example` for every option.
 |---|---|---|
 | `TELEGRAM_TOKEN` | — | BotFather token |
 | `TELEGRAM_CHAT_ID` | — | Your chat or channel ID |
-| `SYMBOLS` | Forex, metals, crypto, and five indices | Comma-separated monitored symbols |
-| `INDEX_REPORT_SYMBOLS` | Five stock indices | Price reports only; excluded from trade signals and performance |
+| `SYMBOLS` | Forex, metals, crypto, and ten indices | Comma-separated monitored symbols |
+| `INDEX_REPORT_SYMBOLS` | Ten stock indices | Price reports only; excluded from trade signals and performance |
 | `TIMEFRAME` | `H1` | M5 M15 M30 H1 H4 D1 |
 | `MA_FAST` / `MA_SLOW` | `9` / `21` | EMA periods |
 | `RSI_PERIOD` | `14` | RSI lookback |
@@ -60,7 +60,7 @@ All settings live in `.env` — see `.env.example` for every option.
 | Forex | EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF |
 | Metals | XAUUSD |
 | Cryptocurrency | BTCUSD |
-| Indices | THAISET, US500, NAS100, NIKKEI225, SHANGHAI |
+| Indices | THAISET, US500, NAS100, DOW30, FTSE100, DAX40, NIKKEI225, SHANGHAI, HANGSENG, ASX200 |
 
 Other supported symbols include USDCAD, NZDUSD, XAGUSD, and ETHUSD. Yahoo Finance tickers can also be used directly.
 
