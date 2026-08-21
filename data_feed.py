@@ -24,6 +24,11 @@ _SYMBOL_MAP = {
     "THAISET": "^SET.BK",
     "US500": "^GSPC",
     "NAS100": "^NDX",
+    "DOW30": "^DJI",
+    "FTSE100": "^FTSE",
+    "DAX40": "^GDAXI",
+    "HANGSENG": "^HSI",
+    "ASX200": "^AXJO",
     "NIKKEI225": "^N225",
     "SHANGHAI": "000001.SS",
 }
