@@ -71,6 +71,9 @@ HIGHER_TIMEFRAME = os.getenv("HIGHER_TIMEFRAME", "H4")
 REQUIRE_HTF_CONFIRMATION = os.getenv("REQUIRE_HTF_CONFIRMATION", "true").lower() in (
     "1", "true", "yes", "on"
 )
+REQUIRE_MACD_CONFIRMATION = os.getenv("REQUIRE_MACD_CONFIRMATION", "true").lower() in (
+    "1", "true", "yes", "on"
+)
 
 # Risk-based position sizing. Estimates assume ACCOUNT_CURRENCY=USD and the
 # standard contract sizes defined in risk.py; confirm the lot size with broker specs.
