@@ -32,8 +32,7 @@ ATR_PERIOD = int(os.getenv("ATR_PERIOD", "14"))
 ATR_SL_MULT = float(os.getenv("ATR_SL_MULT", "1.5"))
 ATR_TP_MULT = float(os.getenv("ATR_TP_MULT", "3.0"))
 
-# Minimum confluence stars (1-3) required to send an alert
-MIN_STARS = int(os.getenv("MIN_STARS", "1"))
+# Minimum confluence stars (1-3) required to send an alert. Two avoids\n# sending a signal when only the triggering indicator supports the direction.\nMIN_STARS = int(os.getenv("MIN_STARS", "2"))
 
 # Alert window in local time (TZ_OFFSET hours from UTC). Alerts are only
 # sent between ALERT_START_HOUR and ALERT_END_HOUR; /status and the daily
