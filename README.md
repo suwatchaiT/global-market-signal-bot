@@ -9,7 +9,7 @@ A GitHub-hosted technical-analysis bot that monitors global forex, metals, crypt
 - EMA crossover (fast/slow configurable)
 - RSI overbought / oversold zones
 - MACD signal-line crossover
-- Closed-candle evaluation with higher-timeframe trend confirmation
+- Closed-candle evaluation with higher-timeframe trend and MACD direction confirmation
 - ATR stop/target and risk-based position-size estimates
 - Signal journal with `/performance` win-rate and R-multiple summary
 - Per-signal Telegram table with `/performance` or `/performance 20`
@@ -46,6 +46,7 @@ All settings live in `.env` — see `.env.example` for every option.
 | `POLL_INTERVAL` | `60` | Seconds between checks |
 | `HIGHER_TIMEFRAME` | `H4` | Trend-confirmation timeframe |
 | `REQUIRE_HTF_CONFIRMATION` | `true` | Reject signals against the higher-timeframe EMA trend |
+| `REQUIRE_MACD_CONFIRMATION` | `true` | Require MACD to agree with BUY/SELL direction |
 | `ACCOUNT_BALANCE` | `10000` | Balance used only for position-size estimates |
 | `RISK_PERCENT` | `1` | Estimated account risk per signal |
 | `ALERT_START_HOUR` / `ALERT_START_MINUTE` | `8` / `30` | Daytime-window start (Thailand time) |
