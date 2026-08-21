@@ -4,6 +4,7 @@ import config
 import data_feed
 import signals as sig_detector
 import notifier
+import index_report
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,9 +38,14 @@ def run():
         f"Timeframe: {config.TIMEFRAME}"
     )
 
+    report_state: dict = {}
+
     try:
         while True:
+            index_report.maybe_send(report_state)
             for symbol in config.SYMBOLS:
+                if index_report.is_index(symbol):
+                    continue
                 df = data_feed.get_rates(symbol)
                 if df is None or len(df) < 50:
                     log.warning("Not enough data for %s, skipping.", symbol)
