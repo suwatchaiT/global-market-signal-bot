@@ -25,6 +25,7 @@ jobs:
       RISK_PERCENT: ${{ vars.RISK_PERCENT || '1' }}
       HIGHER_TIMEFRAME: ${{ vars.HIGHER_TIMEFRAME || 'H4' }}
       REQUIRE_HTF_CONFIRMATION: ${{ vars.REQUIRE_HTF_CONFIRMATION || 'true' }}
+      MIN_STARS: ${{ vars.MIN_STARS || '2' }}
     permissions:
       contents: read
     steps:
