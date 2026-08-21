@@ -104,12 +104,13 @@ def summary(state: dict) -> str:
     win_rate = wins / len(closed) * 100 if closed else 0.0
     net_r = sum(float(r.get("r_multiple", 0)) for r in closed)
     return (
-        "📈 <b>Signal Performance</b>\n"
-        f"Recorded: <b>{len(rows)}</b> | Open: <b>{open_count}</b>\n"
+        "📈 <b>Technical Signal Performance</b>\n"
+        f"Analyzed: <b>{len(rows)}</b> | Open: <b>{open_count}</b>\n"
         f"Closed: <b>{len(closed)}</b> ({wins} wins / {losses} losses)\n"
         f"Win rate: <b>{win_rate:.1f}%</b>\n"
         f"Net result: <b>{net_r:+.1f}R</b>\n"
-        "Indices excluded; based on candle SL/TP touches, not broker fills."
+        f"Scope: technical signals only; {len(config.INDEX_REPORT_SYMBOLS)} indices excluded.\n"
+        "Based on candle SL/TP touches, not broker fills."
     )
 
 
@@ -139,7 +140,7 @@ def performance_table(state: dict, limit: int = 15) -> str:
         return "📋 <b>Per-signal Performance</b>\nNo signals recorded yet."
 
     icons = {"WIN": "✅", "LOSS": "❌", "OPEN": "⏳"}
-    lines = [f"📋 <b>Recent Signal Results</b> — newest {len(selected)}"]
+    lines = [f"📋 <b>Recent Technical Signal Results</b> — newest {len(selected)}"]
     for number, item in enumerate(selected, 1):
         status = item.get("status", "OPEN")
         result = item.get("r_multiple")
