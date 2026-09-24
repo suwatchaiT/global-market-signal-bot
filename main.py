@@ -53,7 +53,14 @@ def run():
 
                 higher_df = data_feed.get_rates(symbol, timeframe=config.HIGHER_TIMEFRAME)
                 found = sig_detector.detect(symbol, df, higher_df)
+                frames = {config.TIMEFRAME.upper(): df}
+                if found:
+                    for timeframe in config.CONFIRMATION_TIMEFRAMES:
+                        if timeframe not in frames:
+                            frames[timeframe] = data_feed.get_rates(symbol, timeframe=timeframe)
                 for s in found:
+                    if not sig_detector.confirm_timeframes(s, frames):
+                        continue
                     if should_send(s):
                         log.info("Signal: %s %s %s — %s", s.symbol, s.signal_type, s.direction, s.detail)
                         ok = notifier.send(s)

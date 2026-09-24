@@ -16,9 +16,14 @@ def records(state: dict) -> list[dict]:
     return state.setdefault("signal_journal", [])
 
 
-def analysis_records(state: dict) -> list[dict]:
+def analysis_records(state: dict, strategy_version: str | None = None) -> list[dict]:
     excluded = {symbol.upper() for symbol in config.INDEX_REPORT_SYMBOLS}
-    return [row for row in records(state) if row.get("symbol", "").upper() not in excluded]
+    version = strategy_version or config.STRATEGY_VERSION
+    return [
+        row for row in records(state)
+        if row.get("symbol", "").upper() not in excluded
+        and row.get("strategy_version", "legacy") == version
+    ]
 
 
 def deduplicate(state: dict) -> int:
@@ -38,7 +43,7 @@ def deduplicate(state: dict) -> int:
 
 
 def contains(state: dict, signal: Signal) -> bool:
-    signal_id = f"{signal.symbol}|{signal.direction}|{signal.candle_time}"
+    signal_id = f"{signal.symbol}|{signal.direction}|{signal.trigger_time or signal.candle_time}"
     return any(item.get("id") == signal_id for item in records(state))
 
 
@@ -47,13 +52,16 @@ def record(state: dict, signal: Signal) -> None:
     if contains(state, signal):
         return
     records(state).append({
-        "id": f"{signal.symbol}|{signal.direction}|{signal.candle_time}",
+        "id": f"{signal.symbol}|{signal.direction}|{signal.trigger_time or signal.candle_time}",
+        "strategy_version": config.STRATEGY_VERSION,
         "symbol": signal.symbol,
         "direction": signal.direction,
         "signal_type": signal.signal_type,
         "stars": signal.stars,
         "opened_at": signal.candle_time or datetime.now(timezone.utc).isoformat(),
         "entry": signal.price,
+        "triggered_at": signal.trigger_time or signal.candle_time,
+        "trigger_price": signal.trigger_price or signal.price,
         "sl": signal.sl,
         "tp": signal.tp,
         "risk_amount": signal.risk_amount,
@@ -105,6 +113,7 @@ def summary(state: dict) -> str:
     net_r = sum(float(r.get("r_multiple", 0)) for r in closed)
     return (
         "📈 <b>Technical Signal Performance</b>\n"
+        f"Strategy: <b>{config.STRATEGY_VERSION}</b>\n"
         f"Analyzed: <b>{len(rows)}</b> | Open: <b>{open_count}</b>\n"
         f"Closed: <b>{len(closed)}</b> ({wins} wins / {losses} losses)\n"
         f"Win rate: <b>{win_rate:.1f}%</b>\n"
@@ -140,7 +149,10 @@ def performance_table(state: dict, limit: int = 15) -> str:
         return "📋 <b>Per-signal Performance</b>\nNo signals recorded yet."
 
     icons = {"WIN": "✅", "LOSS": "❌", "OPEN": "⏳"}
-    lines = [f"📋 <b>Recent Technical Signal Results</b> — newest {len(selected)}"]
+    lines = [
+        f"📋 <b>Recent Technical Signal Results</b> — newest {len(selected)}",
+        f"Strategy: <b>{config.STRATEGY_VERSION}</b>",
+    ]
     for number, item in enumerate(selected, 1):
         status = item.get("status", "OPEN")
         result = item.get("r_multiple")
@@ -151,7 +163,9 @@ def performance_table(state: dict, limit: int = 15) -> str:
             f"{icons.get(status, '•')} {status}{result_text}</b>",
             f"Entry {_price(float(item['entry']))} | SL {_price(float(item['sl']))} | "
             f"TP {_price(float(item['tp']))}",
-            f"{item.get('signal_type', '—')} | Open {_time_th(item.get('opened_at'))}",
+            f"Trigger {_price(float(item.get('trigger_price', item['entry'])))} "
+            f"at {_time_th(item.get('triggered_at'))}",
+            f"{item.get('signal_type', '—')} | Entry {_time_th(item.get('opened_at'))}",
         ])
         if status != "OPEN":
             lines.append(f"Closed {_time_th(item.get('closed_at'))}")

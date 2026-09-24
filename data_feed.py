@@ -36,6 +36,7 @@ _SYMBOL_MAP = {
 # Map MT5-style timeframes to yfinance (interval, period) pairs.
 # Period is sized to return ~200 bars for the indicators.
 _TIMEFRAME_MAP = {
+    "M1": ("1m", "7d"),
     "M5": ("5m", "5d"),
     "M15": ("15m", "10d"),
     "M30": ("30m", "20d"),
@@ -50,7 +51,7 @@ def yahoo_ticker(symbol: str) -> str:
     return _SYMBOL_MAP.get(symbol.upper(), symbol)
 
 
-_CANDLE_MINUTES = {"M5": 5, "M15": 15, "M30": 30, "H1": 60, "H4": 240, "D1": 1440}
+_CANDLE_MINUTES = {"M1": 1, "M5": 5, "M15": 15, "M30": 30, "H1": 60, "H4": 240, "D1": 1440}
 
 
 def _closed_only(df: pd.DataFrame, timeframe: str) -> pd.DataFrame:

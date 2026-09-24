@@ -61,14 +61,17 @@ def _format(signal: Signal) -> str:
         f"Trigger: {signal.detail}",
     ]
 
+    if signal.trigger_price:
+        trigger_line = f"Trigger candle: <b>{signal.trigger_price:.5f}</b>"
+        if signal.trigger_time:
+            trigger_line += f" | {_to_th(signal.trigger_time)} TH ({_staleness(signal.trigger_time)})"
+        lines.append(trigger_line)
+
     if signal.price:
-        price_line = f"Price: <b>{signal.price:.5f}</b>"
+        price_line = f"Entry snapshot: <b>{signal.price:.5f}</b>"
         if signal.candle_time:
             th_time = _to_th(signal.candle_time)
-            age = _staleness(signal.candle_time)
-            price_line += f" | Signal candle: {th_time} TH"
-            if age:
-                price_line += f" ({age})"
+            price_line += f" | {th_time} TH"
         lines.append(price_line)
 
     if signal.context:
