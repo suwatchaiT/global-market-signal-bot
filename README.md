@@ -9,9 +9,11 @@ A GitHub-hosted technical-analysis bot that monitors global forex, metals, crypt
 - EMA crossover (fast/slow configurable)
 - RSI overbought / oversold zones
 - MACD signal-line crossover
+- Exact trigger-candle time/price, kept separately from the later entry snapshot
+- H1 trigger candidates confirmed by M1/M5/M15/M30/H1 voting (4 of 5 by default)
 - Closed-candle evaluation with higher-timeframe trend and MACD direction confirmation
 - ATR stop/target and risk-based position-size estimates
-- Signal journal with `/performance` win-rate and R-multiple summary
+- Strategy-versioned signal journal with `/performance` win-rate and R-multiple summary
 - Per-signal Telegram table with `/performance` or `/performance 20`
 - Stock-index open/close price-change reports (excluded from trade signals)
 - Daily Telegram health heartbeat
@@ -37,7 +39,10 @@ All settings live in `.env` — see `.env.example` for every option.
 | `TELEGRAM_CHAT_ID` | — | Your chat or channel ID |
 | `SYMBOLS` | Forex, metals, crypto, and ten indices | Comma-separated monitored symbols |
 | `INDEX_REPORT_SYMBOLS` | Ten stock indices | Price reports only; excluded from trade signals and performance |
-| `TIMEFRAME` | `H1` | M5 M15 M30 H1 H4 D1 |
+| `TIMEFRAME` | `H1` | Primary trigger timeframe: M1 M5 M15 M30 H1 H4 D1 |
+| `STRATEGY_VERSION` | `v4-mtf-trigger-accuracy` | Separates performance after strategy changes |
+| `CONFIRMATION_TIMEFRAMES` | `M1,M5,M15,M30,H1` | Closed-candle timeframes that vote on a candidate |
+| `MIN_TIMEFRAME_CONFIRMATIONS` | `4` | Minimum agreeing timeframe votes |
 | `MA_FAST` / `MA_SLOW` | `9` / `21` | EMA periods |
 | `RSI_PERIOD` | `14` | RSI lookback |
 | `RSI_OVERBOUGHT` / `RSI_OVERSOLD` | `70` / `30` | RSI thresholds |
@@ -72,8 +77,8 @@ Other supported symbols include USDCAD, NZDUSD, XAGUSD, and ETHUSD. Yahoo Financ
 3. Message your bot, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` to find your `chat_id`
 
 For GitHub Actions, add `TELEGRAM_TOKEN` and `TELEGRAM_CHAT_ID` as repository
-secrets. Add `SYMBOLS`, `ACCOUNT_BALANCE`, `RISK_PERCENT`, `HIGHER_TIMEFRAME`, and
-`REQUIRE_HTF_CONFIRMATION` under **Settings → Secrets and variables → Actions →
+secrets. Add `SYMBOLS`, `ACCOUNT_BALANCE`, `RISK_PERCENT`, `HIGHER_TIMEFRAME`,
+`REQUIRE_HTF_CONFIRMATION`, or the multi-timeframe settings under **Settings → Secrets and variables → Actions →
 Variables** when you want values other than the defaults above.
 
 ## Telegram commands
@@ -93,6 +98,8 @@ Variables** when you want values other than the defaults above.
 - Index alerts intentionally omit lot-size estimates because CFD contract sizes vary by broker.
 - GitHub checks every 15 minutes during the user-selected 08:30-17:00 and
   20:00-23:00 Thailand-time windows.
+- M1 is a closed-candle confirmation sampled when GitHub Actions runs; this is not continuous one-minute monitoring.
+- Multi-timeframe confirmation reduces alerts but cannot guarantee a higher win rate.
 - `/performance` measures later closed-candle SL/TP touches, not actual broker fills. Stock indices are excluded.
 - THAISET, US500, NAS100, NIKKEI225, and SHANGHAI send open/close price changes versus the prior session close instead of trade signals.
 - A monthly maintenance workflow rotates a GitHub issue to keep public-repository

@@ -26,8 +26,17 @@ INDEX_REPORT_SYMBOLS = tuple(
     if value.strip()
 )
 
-# Timeframe (M5, M15, M30, H1, H4, D1)
+# Timeframe (M1, M5, M15, M30, H1, H4, D1)
 TIMEFRAME = os.getenv("TIMEFRAME", "H1")
+
+# Version every strategy change so results from different rule sets are not mixed.
+STRATEGY_VERSION = os.getenv("STRATEGY_VERSION", "v4-mtf-trigger-accuracy")
+CONFIRMATION_TIMEFRAMES = tuple(
+    value.strip().upper()
+    for value in os.getenv("CONFIRMATION_TIMEFRAMES", "M1,M5,M15,M30,H1").split(",")
+    if value.strip()
+)
+MIN_TIMEFRAME_CONFIRMATIONS = int(os.getenv("MIN_TIMEFRAME_CONFIRMATIONS", "4"))
 
 # Indicator settings
 MA_FAST = int(os.getenv("MA_FAST", "9"))

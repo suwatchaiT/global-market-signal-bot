@@ -16,6 +16,8 @@ class Signal:
     detail: str             # trigger descriptions
     price: float = 0.0
     candle_time: str = ""
+    trigger_price: float = 0.0
+    trigger_time: str = ""
     stars: int = 1          # confluence score 1-3
     sl: float = 0.0
     tp: float = 0.0
@@ -42,6 +44,40 @@ def _macd_confirms(direction: str, macd_state: str) -> bool:
     return not config.REQUIRE_MACD_CONFIRMATION or macd_state == direction
 
 
+def timeframe_vote(direction: str, df: pd.DataFrame | None) -> tuple[bool, str]:
+    """Return whether at least two of EMA, RSI and MACD align."""
+    if df is None or len(df) < max(config.MA_SLOW, config.RSI_PERIOD, config.MACD_SLOW):
+        return False, "no data"
+    close = df["close"]
+    fast = _ema(close, config.MA_FAST)
+    slow = _ema(close, config.MA_SLOW)
+    rsi_value = float(_rsi(close, config.RSI_PERIOD).iloc[-1])
+    macd_line = _ema(close, config.MACD_FAST) - _ema(close, config.MACD_SLOW)
+    signal_line = _ema(macd_line, config.MACD_SIGNAL)
+    states = (
+        "BUY" if fast.iloc[-1] > slow.iloc[-1] else "SELL",
+        "BUY" if rsi_value < 50 else "SELL",
+        "BUY" if macd_line.iloc[-1] > signal_line.iloc[-1] else "SELL",
+    )
+    aligned = sum(state == direction for state in states)
+    return aligned >= 2, f"{aligned}/3 indicators"
+
+
+def confirm_timeframes(signal: Signal, frames: dict[str, pd.DataFrame | None]) -> bool:
+    """Require configured timeframe votes and retain the decision in the alert."""
+    votes = []
+    for timeframe in config.CONFIRMATION_TIMEFRAMES:
+        passed, detail = timeframe_vote(signal.direction, frames.get(timeframe))
+        votes.append((timeframe, passed, detail))
+    passed_count = sum(passed for _, passed, _ in votes)
+    signal.context.append(
+        f"MTF: {passed_count}/{len(votes)} aligned [" + ", ".join(
+            f"{timeframe} {'yes' if passed else 'no'}" for timeframe, passed, _ in votes
+        ) + "]"
+    )
+    return passed_count >= config.MIN_TIMEFRAME_CONFIRMATIONS
+
+
 def _atr(df: pd.DataFrame, period: int) -> float:
     high, low, close = df["high"], df["low"], df["close"]
     prev_close = close.shift(1)
@@ -66,7 +102,7 @@ def detect(symbol: str, df: pd.DataFrame, higher_df: pd.DataFrame | None = None)
     # --- Trigger events: scan the last LOOKBACK_BARS candles, not just the
     # newest one, because scheduled runs may be hours apart and signals on
     # intermediate bars would otherwise be missed. Cooldown dedupes repeats.
-    triggers: list[tuple[str, str, str]] = []  # (name, direction, description)
+    triggers: list[tuple[str, str, str, int]] = []  # name, direction, description, bar
 
     def bar_label(i: int) -> str:
         if "time" in df.columns and i != -1:
@@ -78,26 +114,26 @@ def detect(symbol: str, df: pd.DataFrame, higher_df: pd.DataFrame | None = None)
 
         if fast.iloc[p] < slow.iloc[p] and fast.iloc[c] > slow.iloc[c]:
             triggers.append(("MA_CROSS", "BUY",
-                f"EMA{config.MA_FAST} crossed above EMA{config.MA_SLOW}{bar_label(c)}"))
+                f"EMA{config.MA_FAST} crossed above EMA{config.MA_SLOW}{bar_label(c)}", c))
         elif fast.iloc[p] > slow.iloc[p] and fast.iloc[c] < slow.iloc[c]:
             triggers.append(("MA_CROSS", "SELL",
-                f"EMA{config.MA_FAST} crossed below EMA{config.MA_SLOW}{bar_label(c)}"))
+                f"EMA{config.MA_FAST} crossed below EMA{config.MA_SLOW}{bar_label(c)}", c))
 
         r_p, r_c = float(rsi.iloc[p]), float(rsi.iloc[c])
         if r_p <= config.RSI_OVERSOLD and r_c > config.RSI_OVERSOLD:
-            triggers.append(("RSI", "BUY", f"RSI exited oversold zone ({r_c:.1f}){bar_label(c)}"))
+            triggers.append(("RSI", "BUY", f"RSI exited oversold zone ({r_c:.1f}){bar_label(c)}", c))
         elif r_p >= config.RSI_OVERBOUGHT and r_c < config.RSI_OVERBOUGHT:
-            triggers.append(("RSI", "SELL", f"RSI exited overbought zone ({r_c:.1f}){bar_label(c)}"))
+            triggers.append(("RSI", "SELL", f"RSI exited overbought zone ({r_c:.1f}){bar_label(c)}", c))
         # Entering an extreme is not a reversal confirmation. Wait for RSI to
         # leave the zone instead of buying overbought or selling oversold.
 
         if macd_line.iloc[p] < signal_line.iloc[p] and macd_line.iloc[c] > signal_line.iloc[c]:
-            triggers.append(("MACD_CROSS", "BUY", f"MACD crossed above signal line{bar_label(c)}"))
+            triggers.append(("MACD_CROSS", "BUY", f"MACD crossed above signal line{bar_label(c)}", c))
         elif macd_line.iloc[p] > signal_line.iloc[p] and macd_line.iloc[c] < signal_line.iloc[c]:
-            triggers.append(("MACD_CROSS", "SELL", f"MACD crossed below signal line{bar_label(c)}"))
+            triggers.append(("MACD_CROSS", "SELL", f"MACD crossed below signal line{bar_label(c)}", c))
 
     # Keep only the most recent trigger per (indicator, direction)
-    seen: dict[tuple[str, str], tuple[str, str, str]] = {}
+    seen: dict[tuple[str, str], tuple[str, str, str, int]] = {}
     for t in triggers:
         seen[(t[0], t[1])] = t
     triggers = list(seen.values())
@@ -138,6 +174,9 @@ def detect(symbol: str, df: pd.DataFrame, higher_df: pd.DataFrame | None = None)
         fired = [t for t in triggers if t[1] == direction]
         if not fired:
             continue
+        # Do not create false confluence from indicators triggered on different bars.
+        trigger_bar = max(t[3] for t in fired)
+        fired = [t for t in fired if t[3] == trigger_bar]
         if config.REQUIRE_HTF_CONFIRMATION and htf_state and htf_state != direction:
             continue
         if not _macd_confirms(direction, macd_state):
@@ -163,6 +202,8 @@ def detect(symbol: str, df: pd.DataFrame, higher_df: pd.DataFrame | None = None)
             detail="; ".join(t[2] for t in fired),
             price=price,
             candle_time=candle_time,
+            trigger_price=float(close.iloc[trigger_bar]),
+            trigger_time=(str(df["time"].iloc[trigger_bar]) if "time" in df.columns else candle_time),
             stars=stars,
             sl=sl,
             tp=tp,

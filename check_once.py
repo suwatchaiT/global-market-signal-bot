@@ -91,10 +91,20 @@ def main():
                         config.HIGHER_TIMEFRAME, symbol)
             continue
 
-        for s in sig_detector.detect(symbol, df, higher_df):
+        candidates = sig_detector.detect(symbol, df, higher_df)
+        frames = {config.TIMEFRAME.upper(): df}
+        if candidates:
+            for timeframe in config.CONFIRMATION_TIMEFRAMES:
+                if timeframe not in frames:
+                    frames[timeframe] = data_feed.get_rates(symbol, timeframe=timeframe)
+
+        for s in candidates:
+            if not sig_detector.confirm_timeframes(s, frames):
+                log.info("MTF confirmation rejected: %s %s", s.symbol, s.direction)
+                continue
             if journal.contains(state, s):
                 log.info("Signal candle already recorded, skipping: %s %s %s",
-                         s.symbol, s.direction, s.candle_time)
+                         s.symbol, s.direction, s.trigger_time)
                 continue
             key = f"{s.symbol}|{s.signal_type}|{s.direction}"
             if now - state.get(key, 0) < COOLDOWN_SECONDS:
