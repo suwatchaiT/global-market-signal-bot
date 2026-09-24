@@ -27,10 +27,14 @@ import journal
 import index_report
 import risk
 import check_once
-from signals import Signal, _macd_confirms
+from signals import Signal, _macd_confirms, confirm_timeframes, timeframe_vote
 
 
 class DataFeedTests(unittest.TestCase):
+    def test_m1_is_supported(self):
+        self.assertEqual(data_feed._TIMEFRAME_MAP["M1"], ("1m", "7d"))
+        self.assertEqual(data_feed._CANDLE_MINUTES["M1"], 1)
+
     def test_incomplete_candle_is_removed(self):
         now = pd.Timestamp(datetime.now(timezone.utc)).floor("h")
         df = pd.DataFrame({"time": [now - pd.Timedelta(hours=1), now], "close": [1, 2]})
@@ -117,6 +121,29 @@ class IndexReportTests(unittest.TestCase):
 
 
 class SignalFilterTests(unittest.TestCase):
+    @staticmethod
+    def _rising_frame() -> pd.DataFrame:
+        values = [100 + i * 0.2 for i in range(60)]
+        return pd.DataFrame({"close": values})
+
+    @patch("config.MIN_TIMEFRAME_CONFIRMATIONS", 4)
+    @patch("config.CONFIRMATION_TIMEFRAMES", ("M1", "M5", "M15", "M30", "H1"))
+    def test_four_of_five_timeframes_confirm(self):
+        frame = self._rising_frame()
+        signal = Signal("EURUSD", "MA_CROSS", "BUY", "test")
+        frames = {name: frame for name in ("M1", "M5", "M15", "M30")}
+        frames["H1"] = None
+        self.assertTrue(confirm_timeframes(signal, frames))
+        self.assertIn("4/5 aligned", signal.context[-1])
+
+    @patch("config.MIN_TIMEFRAME_CONFIRMATIONS", 4)
+    @patch("config.CONFIRMATION_TIMEFRAMES", ("M1", "M5", "M15", "M30", "H1"))
+    def test_three_of_five_timeframes_are_rejected(self):
+        frame = self._rising_frame()
+        signal = Signal("EURUSD", "MA_CROSS", "BUY", "test")
+        frames = {"M1": frame, "M5": frame, "M15": frame, "M30": None, "H1": None}
+        self.assertFalse(confirm_timeframes(signal, frames))
+
     @patch("config.REQUIRE_MACD_CONFIRMATION", True)
     def test_macd_must_agree_when_confirmation_enabled(self):
         self.assertTrue(_macd_confirms("BUY", "BUY"))
@@ -170,6 +197,7 @@ class JournalTests(unittest.TestCase):
         state = {"signal_journal": [
             {"id": "THAISET|BUY|1", "symbol": "THAISET", "status": "LOSS"},
             {"id": "EURUSD|BUY|2", "symbol": "EURUSD", "status": "WIN",
+             "strategy_version": config.STRATEGY_VERSION,
              "direction": "BUY", "signal_type": "RSI", "opened_at": "2026-01-01",
              "entry": 1.1, "sl": 1.0, "tp": 1.3, "r_multiple": 2.0},
         ]}
@@ -179,6 +207,7 @@ class JournalTests(unittest.TestCase):
     def test_performance_table_contains_signal_details(self):
         state = {"signal_journal": [{
             "symbol": "EURUSD", "direction": "BUY", "signal_type": "MA_CROSS",
+            "strategy_version": config.STRATEGY_VERSION,
             "opened_at": "2026-01-01T00:00:00+00:00", "closed_at": "2026-01-01T02:00:00+00:00",
             "entry": 1.1, "sl": 1.09, "tp": 1.12, "status": "WIN", "r_multiple": 2.0,
         }]}
@@ -191,6 +220,7 @@ class JournalTests(unittest.TestCase):
     def test_performance_table_caps_rows_at_twenty(self):
         row = {
             "symbol": "BTCUSD", "direction": "BUY", "signal_type": "RSI",
+            "strategy_version": config.STRATEGY_VERSION,
             "opened_at": "2026-01-01T00:00:00+00:00", "entry": 1,
             "sl": 0.9, "tp": 1.2, "status": "OPEN",
         }
@@ -212,6 +242,31 @@ class JournalTests(unittest.TestCase):
         journal.evaluate(state, "EURUSD", df)
         self.assertEqual(state["signal_journal"][0]["status"], "WIN")
         self.assertAlmostEqual(state["signal_journal"][0]["r_multiple"], 2)
+
+    def test_performance_only_uses_current_strategy_version(self):
+        common = {
+            "symbol": "EURUSD", "direction": "BUY", "signal_type": "RSI",
+            "opened_at": "2026-01-01T00:00:00+00:00", "entry": 1.1,
+            "sl": 1.0, "tp": 1.3, "status": "WIN", "r_multiple": 2.0,
+        }
+        current = dict(common, id="current", strategy_version=config.STRATEGY_VERSION)
+        legacy = dict(common, id="legacy")
+        text = journal.summary({"signal_journal": [legacy, current]})
+        self.assertIn("Analyzed: <b>1</b>", text)
+        self.assertIn(config.STRATEGY_VERSION, text)
+
+    def test_trigger_time_is_the_journal_identity(self):
+        state: dict = {}
+        first = Signal("EURUSD", "RSI", "BUY", "test", price=1.1,
+                       candle_time="2026-01-01T02:00:00Z", trigger_price=1.09,
+                       trigger_time="2026-01-01T01:00:00Z", sl=1.0, tp=1.3)
+        later_snapshot = Signal("EURUSD", "RSI", "BUY", "test", price=1.11,
+                                candle_time="2026-01-01T03:00:00Z", trigger_price=1.09,
+                                trigger_time="2026-01-01T01:00:00Z", sl=1.0, tp=1.3)
+        journal.record(state, first)
+        journal.record(state, later_snapshot)
+        self.assertEqual(len(journal.records(state)), 1)
+        self.assertEqual(journal.records(state)[0]["trigger_price"], 1.09)
 
     def test_both_levels_in_one_candle_is_conservative_loss(self):
         state: dict = {}
