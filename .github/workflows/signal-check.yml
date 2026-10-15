@@ -37,6 +37,7 @@ jobs:
       STRATEGY_VERSION: ${{ vars.STRATEGY_VERSION || 'v4-mtf-trigger-accuracy' }}
       CONFIRMATION_TIMEFRAMES: ${{ vars.CONFIRMATION_TIMEFRAMES || 'M1,M5,M15,M30,H1' }}
       MIN_TIMEFRAME_CONFIRMATIONS: ${{ vars.MIN_TIMEFRAME_CONFIRMATIONS || '4' }}
+      NOTIFICATION_CHANNEL: ${{ vars.NOTIFICATION_CHANNEL || 'discord' }}
       INDEX_REPORT_SYMBOLS: ${{ vars.INDEX_REPORT_SYMBOLS || 'THAISET,US500,NAS100,DOW30,FTSE100,DAX40,NIKKEI225,SHANGHAI,HANGSENG,ASX200' }}
     permissions:
       contents: read
@@ -62,6 +63,7 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python check_once.py
 

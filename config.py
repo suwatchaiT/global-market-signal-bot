@@ -7,6 +7,12 @@ load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
+# Outbound notification provider. Discord uses a channel webhook and does not
+# require an always-running bot process.
+NOTIFICATION_CHANNEL = os.getenv("NOTIFICATION_CHANNEL", "telegram").strip().lower()
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
+DISCORD_USERNAME = os.getenv("DISCORD_USERNAME", "Global Market Signal Bot")
+
 # Symbols to monitor
 SYMBOLS = os.getenv(
     "SYMBOLS",

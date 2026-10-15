@@ -1,4 +1,4 @@
-"""Daily operational heartbeat sent through Telegram."""
+"""Daily operational heartbeat sent through the configured notifier."""
 from __future__ import annotations
 
 from datetime import datetime, timezone

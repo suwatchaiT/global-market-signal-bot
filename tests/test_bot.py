@@ -25,6 +25,7 @@ import data_feed
 import config
 import journal
 import index_report
+import notifier
 import risk
 import check_once
 from signals import Signal, _macd_confirms, confirm_timeframes, timeframe_vote
@@ -76,6 +77,27 @@ class AlertWindowTests(unittest.TestCase):
         self.assertTrue(check_once._minute_in_window(22 * 60, 20 * 60, 4 * 60))
         self.assertTrue(check_once._minute_in_window(2 * 60, 20 * 60, 4 * 60))
         self.assertFalse(check_once._minute_in_window(12 * 60, 20 * 60, 4 * 60))
+
+
+class DiscordNotifierTests(unittest.TestCase):
+    def test_telegram_html_is_converted_to_discord_markdown(self):
+        self.assertEqual(
+            notifier._discord_markdown("📈 <b>Performance</b>\nWin rate: <b>75%</b>"),
+            "📈 **Performance**\nWin rate: **75%**",
+        )
+
+    def test_long_discord_reports_are_split_below_limit(self):
+        chunks = notifier._discord_chunks("\n".join(["x" * 500] * 6))
+        self.assertGreater(len(chunks), 1)
+        self.assertTrue(all(len(chunk) <= 2000 for chunk in chunks))
+
+    @patch("config.DISCORD_WEBHOOK_URL", "https://discord.example/webhook")
+    @patch("notifier.requests.post")
+    def test_discord_accepts_no_content_response(self, post):
+        post.return_value.status_code = 204
+        self.assertTrue(notifier._send_discord("hello"))
+        post.assert_called_once()
+        self.assertEqual(post.call_args.kwargs["json"]["content"], "hello")
 
 
 class IndexReportTests(unittest.TestCase):

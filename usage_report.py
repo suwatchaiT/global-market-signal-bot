@@ -1,4 +1,4 @@
-"""Daily GitHub Actions utilization report, sent via Telegram.
+"""Daily GitHub Actions utilization report, sent through the configured notifier.
 
 Computes this month's workflow run count, total runtime and success rate
 from the GitHub API. Sent once per day on the first run at/after

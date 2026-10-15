@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import logging
+import re
 from datetime import datetime, timezone, timedelta
 
 import requests
@@ -93,6 +94,11 @@ def _format(signal: Signal) -> str:
 
 
 def send(signal: Signal) -> bool:
+    if config.NOTIFICATION_CHANNEL == "discord":
+        return _send_discord(_format(signal))
+    if config.NOTIFICATION_CHANNEL != "telegram":
+        log.error("Unsupported NOTIFICATION_CHANNEL: %s", config.NOTIFICATION_CHANNEL)
+        return False
     if not config.TELEGRAM_TOKEN or not config.TELEGRAM_CHAT_ID:
         return False
     url = f"https://api.telegram.org/bot{config.TELEGRAM_TOKEN}/sendMessage"
@@ -138,6 +144,11 @@ def _send_chart(signal: Signal) -> None:
 
 
 def send_text(text: str) -> bool:
+    if config.NOTIFICATION_CHANNEL == "discord":
+        return _send_discord(text)
+    if config.NOTIFICATION_CHANNEL != "telegram":
+        log.error("Unsupported NOTIFICATION_CHANNEL: %s", config.NOTIFICATION_CHANNEL)
+        return False
     if not config.TELEGRAM_TOKEN or not config.TELEGRAM_CHAT_ID:
         log.warning("Telegram text not sent: token or chat ID missing.")
         return False
@@ -157,3 +168,51 @@ def send_text(text: str) -> bool:
     except requests.RequestException as e:
         log.warning("Telegram sendMessage request failed: %s", e)
         return False
+
+
+def _discord_markdown(text: str) -> str:
+    """Convert the small Telegram HTML subset used by reports to Discord markdown."""
+    text = re.sub(r"<b>(.*?)</b>", r"**\1**", text, flags=re.DOTALL)
+    return re.sub(r"<[^>]+>", "", text)
+
+
+def _discord_chunks(text: str, limit: int = 2000) -> list[str]:
+    """Split long reports on line boundaries within Discord's message limit."""
+    lines = _discord_markdown(text).splitlines()
+    chunks: list[str] = []
+    current = ""
+    for line in lines:
+        candidate = f"{current}\n{line}" if current else line
+        if len(candidate) <= limit:
+            current = candidate
+            continue
+        if current:
+            chunks.append(current)
+        while len(line) > limit:
+            chunks.append(line[:limit])
+            line = line[limit:]
+        current = line
+    if current or not chunks:
+        chunks.append(current)
+    return chunks
+
+
+def _send_discord(text: str) -> bool:
+    if not config.DISCORD_WEBHOOK_URL:
+        log.warning("Discord message not sent: DISCORD_WEBHOOK_URL is missing.")
+        return False
+    for chunk in _discord_chunks(text):
+        try:
+            response = requests.post(
+                config.DISCORD_WEBHOOK_URL,
+                json={"content": chunk, "username": config.DISCORD_USERNAME},
+                timeout=10,
+            )
+        except requests.RequestException as error:
+            log.warning("Discord webhook request failed: %s", error)
+            return False
+        if response.status_code not in (200, 204):
+            log.warning("Discord webhook rejected request: HTTP %d — %.300s",
+                        response.status_code, response.text)
+            return False
+    return True

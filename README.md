@@ -3,7 +3,7 @@
 [![Signal check](https://github.com/suwatchaiT/global-market-signal-bot/actions/workflows/signal-check.yml/badge.svg)](https://github.com/suwatchaiT/global-market-signal-bot/actions/workflows/signal-check.yml)
 ![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue)
 
-A GitHub-hosted technical-analysis bot that monitors global forex, metals, cryptocurrency, and stock-index markets, then sends Telegram alerts and performance reports. It uses Yahoo Finance data and GitHub Actions, so no MT5 terminal, broker account, server, or always-awake computer is required.
+A GitHub-hosted technical-analysis bot that monitors global forex, metals, cryptocurrency, and stock-index markets, then sends Discord or Telegram alerts and performance reports. It uses Yahoo Finance data and GitHub Actions, so no MT5 terminal, broker account, server, or always-awake computer is required.
 
 ## Strategy and features
 - EMA crossover (fast/slow configurable)
@@ -35,6 +35,9 @@ All settings live in `.env` — see `.env.example` for every option.
 
 | Variable | Default | Description |
 |---|---|---|
+| `NOTIFICATION_CHANNEL` | `telegram` locally; `discord` in Actions | Outbound provider: `discord` or `telegram` |
+| `DISCORD_WEBHOOK_URL` | — | Secret Discord channel webhook URL |
+| `DISCORD_USERNAME` | `Global Market Signal Bot` | Display name used by the Discord webhook |
 | `TELEGRAM_TOKEN` | — | BotFather token |
 | `TELEGRAM_CHAT_ID` | — | Your chat or channel ID |
 | `SYMBOLS` | Forex, metals, crypto, and ten indices | Comma-separated monitored symbols |
@@ -80,6 +83,15 @@ For GitHub Actions, add `TELEGRAM_TOKEN` and `TELEGRAM_CHAT_ID` as repository
 secrets. Add `SYMBOLS`, `ACCOUNT_BALANCE`, `RISK_PERCENT`, `HIGHER_TIMEFRAME`,
 `REQUIRE_HTF_CONFIRMATION`, or the multi-timeframe settings under **Settings → Secrets and variables → Actions →
 Variables** when you want values other than the defaults above.
+
+## Discord setup
+
+1. In Discord, open the destination channel's **Edit Channel → Integrations → Webhooks**.
+2. Create a webhook and copy its URL.
+3. In GitHub, add the URL as the repository Actions secret `DISCORD_WEBHOOK_URL`.
+4. Keep the Actions variable `NOTIFICATION_CHANNEL` set to `discord` (the workflow default).
+
+Discord webhooks support outbound alerts and scheduled reports without an awake computer. Incoming `/status` and `/performance` commands remain Telegram-only; scheduled heartbeat and performance information is still delivered to Discord.
 
 ## Telegram commands
 
