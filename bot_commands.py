@@ -38,7 +38,7 @@ def _build_status() -> str:
 
 def handle_commands(state: dict) -> None:
     """Poll pending Telegram messages and answer /status commands."""
-    if not config.TELEGRAM_TOKEN:
+    if config.NOTIFICATION_CHANNEL != "telegram" or not config.TELEGRAM_TOKEN:
         return
     offset = int(state.get("last_update_id", 0)) + 1
     url = f"https://api.telegram.org/bot{config.TELEGRAM_TOKEN}/getUpdates"
