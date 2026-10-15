@@ -90,6 +90,7 @@ Variables** when you want values other than the defaults above.
 2. Create a webhook and copy its URL.
 3. In GitHub, add the URL as the repository Actions secret `DISCORD_WEBHOOK_URL`.
 4. Keep the Actions variable `NOTIFICATION_CHANNEL` set to `discord` (the workflow default).
+5. To verify delivery, open **Actions → Global market signal check → Run workflow**, enable **Send only a Discord test message**, and run it.
 
 Discord webhooks support outbound alerts and scheduled reports without an awake computer. Incoming `/status` and `/performance` commands remain Telegram-only; scheduled heartbeat and performance information is still delivered to Discord.
 
