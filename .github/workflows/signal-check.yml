@@ -18,6 +18,12 @@ on:
     - cron: "15,45 20-21 * * 1-5"
     # The 01:30 UTC run also sends the daily 08:30 Thailand heartbeat.
   workflow_dispatch:
+    inputs:
+      send_test_message:
+        description: Send only a Discord test message
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: signal-check
@@ -59,7 +65,16 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Send Discord test message
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_message }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: >-
+          python -c "import notifier, sys;
+          sys.exit(0 if notifier.send_text('✅ **Discord connection successful**\nGlobal Market Signal Bot can send alerts to this channel.') else 1)"
+
       - name: Run signal check
+        if: ${{ !inputs.send_test_message }}
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -68,7 +83,7 @@ jobs:
         run: python check_once.py
 
       - name: Save alert state
-        if: always()
+        if: ${{ always() && !inputs.send_test_message }}
         uses: actions/cache/save@v5
         with:
           path: state.json
