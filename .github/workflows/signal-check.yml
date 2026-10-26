@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       send_test_message:
-        description: Send only a Discord test message
+        description: Send only a Discord test signal with chart
         required: false
         type: boolean
         default: false
@@ -65,13 +65,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Send Discord test message
+      - name: Send Discord test signal with chart
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_message }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: >-
-          python -c "import notifier, sys;
-          sys.exit(0 if notifier.send_text('✅ **Discord connection successful**\nGlobal Market Signal Bot can send alerts to this channel.') else 1)"
+        run: python send_test_notification.py
 
       - name: Run signal check
         if: ${{ !inputs.send_test_message }}

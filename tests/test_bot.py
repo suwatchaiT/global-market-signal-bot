@@ -99,6 +99,32 @@ class DiscordNotifierTests(unittest.TestCase):
         post.assert_called_once()
         self.assertEqual(post.call_args.kwargs["json"]["content"], "hello")
 
+    @patch("config.DISCORD_WEBHOOK_URL", "https://discord.example/webhook")
+    @patch("chart.render", return_value=b"png-bytes")
+    @patch("notifier.requests.post")
+    def test_discord_signal_includes_chart_attachment(self, post, render):
+        post.return_value.status_code = 204
+        signal = Signal(
+            "EURUSD", "MA_CROSS", "BUY", "test trigger", price=1.1,
+            candle_time="2026-10-26T01:00:00+00:00", sl=1.09, tp=1.12,
+        )
+        self.assertTrue(notifier._send_discord_signal(signal))
+        render.assert_called_once_with(signal)
+        self.assertIn("payload_json", post.call_args.kwargs["data"])
+        filename, content, mime = post.call_args.kwargs["files"]["files[0]"]
+        self.assertEqual(filename, "EURUSD_m15.png")
+        self.assertEqual(content, b"png-bytes")
+        self.assertEqual(mime, "image/png")
+
+    @patch("config.DISCORD_WEBHOOK_URL", "https://discord.example/webhook")
+    @patch("chart.render", return_value=None)
+    @patch("notifier.requests.post")
+    def test_discord_signal_falls_back_to_text_when_chart_unavailable(self, post, render):
+        post.return_value.status_code = 204
+        signal = Signal("EURUSD", "RSI", "SELL", "test")
+        self.assertTrue(notifier._send_discord_signal(signal))
+        self.assertIn("json", post.call_args.kwargs)
+
 
 class IndexReportTests(unittest.TestCase):
     def test_top_ten_indices_are_price_reports(self):
