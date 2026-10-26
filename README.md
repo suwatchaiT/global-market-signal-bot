@@ -16,6 +16,7 @@ A GitHub-hosted technical-analysis bot that monitors global forex, metals, crypt
 - Strategy-versioned signal journal with `/performance` win-rate and R-multiple summary
 - Per-signal Telegram table with `/performance` or `/performance 20`
 - Stock-index open/close price-change reports (excluded from trade signals)
+- M15 candlestick chart attached to each Discord or Telegram trade signal
 - Daily Telegram health heartbeat
 
 ## Setup
@@ -90,7 +91,7 @@ Variables** when you want values other than the defaults above.
 2. Create a webhook and copy its URL.
 3. In GitHub, add the URL as the repository Actions secret `DISCORD_WEBHOOK_URL`.
 4. Keep the Actions variable `NOTIFICATION_CHANNEL` set to `discord` (the workflow default).
-5. To verify delivery, open **Actions → Global market signal check → Run workflow**, enable **Send only a Discord test message**, and run it.
+5. To verify delivery, open **Actions → Global market signal check → Run workflow**, enable **Send only a Discord test signal with chart**, and run it.
 
 Discord webhooks support outbound alerts and scheduled reports without an awake computer. Incoming `/status` and `/performance` commands remain Telegram-only; scheduled heartbeat and performance information is still delivered to Discord.
 

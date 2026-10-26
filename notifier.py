@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import json
 import logging
 import re
 from datetime import datetime, timezone, timedelta
@@ -95,7 +96,7 @@ def _format(signal: Signal) -> str:
 
 def send(signal: Signal) -> bool:
     if config.NOTIFICATION_CHANNEL == "discord":
-        return _send_discord(_format(signal))
+        return _send_discord_signal(signal)
     if config.NOTIFICATION_CHANNEL != "telegram":
         log.error("Unsupported NOTIFICATION_CHANNEL: %s", config.NOTIFICATION_CHANNEL)
         return False
@@ -214,5 +215,59 @@ def _send_discord(text: str) -> bool:
         if response.status_code not in (200, 204):
             log.warning("Discord webhook rejected request: HTTP %d — %.300s",
                         response.status_code, response.text)
+            return False
+    return True
+
+
+def _send_discord_signal(signal: Signal) -> bool:
+    """Send a signal and its rendered chart as one Discord webhook message."""
+    if not config.DISCORD_WEBHOOK_URL:
+        log.warning("Discord signal not sent: DISCORD_WEBHOOK_URL is missing.")
+        return False
+
+    try:
+        import chart
+        png = chart.render(signal)
+    except Exception as error:
+        log.warning("Discord chart render failed: %s", error)
+        png = None
+
+    # Market data may occasionally be unavailable for chart rendering. Preserve
+    # the actionable text alert instead of losing the entire signal.
+    if not png:
+        log.warning("Discord chart unavailable for %s; sending text only.", signal.symbol)
+        return _send_discord(_format(signal))
+
+    chunks = _discord_chunks(_format(signal))
+    first_payload = {
+        "content": chunks[0],
+        "username": config.DISCORD_USERNAME,
+        "attachments": [{"id": 0, "filename": f"{signal.symbol}_m15.png"}],
+    }
+    try:
+        response = requests.post(
+            config.DISCORD_WEBHOOK_URL,
+            data={"payload_json": json.dumps(first_payload)},
+            files={
+                "files[0]": (
+                    f"{signal.symbol}_m15.png",
+                    png,
+                    "image/png",
+                )
+            },
+            timeout=30,
+        )
+    except requests.RequestException as error:
+        log.warning("Discord signal/chart upload failed: %s", error)
+        return False
+    if response.status_code not in (200, 204):
+        log.warning("Discord signal/chart rejected: HTTP %d — %.300s",
+                    response.status_code, response.text)
+        return False
+
+    # A signal normally fits one Discord message. Retain safe splitting if its
+    # context grows beyond Discord's content limit in the future.
+    for chunk in chunks[1:]:
+        if not _send_discord(chunk):
             return False
     return True
