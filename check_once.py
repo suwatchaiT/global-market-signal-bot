@@ -17,6 +17,7 @@ import usage_report
 import health_report
 import journal
 import index_report
+import weekly_report
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
@@ -72,13 +73,12 @@ def main():
         )
         bot_commands.handle_commands(state)
         health_report.maybe_send(state)
+        weekly_report.maybe_send(state)
         usage_report.maybe_send_daily_report(state)
         STATE_FILE.write_text(json.dumps(state))
         return
 
-    for symbol in config.SYMBOLS:
-        if index_report.is_index(symbol):
-            continue
+    for symbol in config.TECHNICAL_SIGNAL_SYMBOLS:
         df = data_feed.get_rates(symbol)
         if df is None or len(df) < 50:
             log.warning("Not enough data for %s, skipping.", symbol)
@@ -120,6 +120,7 @@ def main():
 
     bot_commands.handle_commands(state)
     health_report.maybe_send(state)
+    weekly_report.maybe_send(state)
     usage_report.maybe_send_daily_report(state)
 
     STATE_FILE.write_text(json.dumps(state))

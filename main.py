@@ -43,9 +43,7 @@ def run():
     try:
         while True:
             index_report.maybe_send(report_state)
-            for symbol in config.SYMBOLS:
-                if index_report.is_index(symbol):
-                    continue
+            for symbol in config.TECHNICAL_SIGNAL_SYMBOLS:
                 df = data_feed.get_rates(symbol)
                 if df is None or len(df) < 50:
                     log.warning("Not enough data for %s, skipping.", symbol)

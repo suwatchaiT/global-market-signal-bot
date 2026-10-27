@@ -16,10 +16,18 @@ DISCORD_USERNAME = os.getenv("DISCORD_USERNAME", "Global Market Signal Bot")
 # Symbols to monitor
 SYMBOLS = os.getenv(
     "SYMBOLS",
-    "EURUSD,GBPUSD,USDJPY,AUDUSD,USDCHF,XAUUSD,BTCUSD,"
+    "XAUUSD,BTCUSD,"
     "THAISET,US500,NAS100,DOW30,FTSE100,DAX40,"
     "NIKKEI225,SHANGHAI,HANGSENG,ASX200",
 ).split(",")
+
+# Only these symbols are evaluated for BUY/SELL technical signals. Indices in
+# SYMBOLS remain available for open/close reports and heartbeat prices.
+TECHNICAL_SIGNAL_SYMBOLS = tuple(
+    value.strip().upper()
+    for value in os.getenv("TECHNICAL_SIGNAL_SYMBOLS", "XAUUSD,BTCUSD").split(",")
+    if value.strip()
+)
 
 # Stock indices receive open/close price reports but no technical trade signals.
 INDEX_REPORT_SYMBOLS = tuple(
