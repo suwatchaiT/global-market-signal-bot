@@ -14,6 +14,7 @@ A GitHub-hosted technical-analysis bot that monitors global forex, metals, crypt
 - Closed-candle evaluation with higher-timeframe trend and MACD direction confirmation
 - ATR stop/target and risk-based position-size estimates
 - Strategy-versioned signal journal with `/performance` win-rate and R-multiple summary
+- Weekly Discord performance report by symbol, direction, trigger, and session
 - Per-signal Telegram table with `/performance` or `/performance 20`
 - Stock-index open/close price-change reports (excluded from trade signals)
 - M15 candlestick chart attached to each Discord or Telegram trade signal
@@ -41,7 +42,8 @@ All settings live in `.env` — see `.env.example` for every option.
 | `DISCORD_USERNAME` | `Global Market Signal Bot` | Display name used by the Discord webhook |
 | `TELEGRAM_TOKEN` | — | BotFather token |
 | `TELEGRAM_CHAT_ID` | — | Your chat or channel ID |
-| `SYMBOLS` | Forex, metals, crypto, and ten indices | Comma-separated monitored symbols |
+| `SYMBOLS` | XAUUSD, BTCUSD, and ten indices | Comma-separated symbols used by signals, heartbeat, and index reports |
+| `TECHNICAL_SIGNAL_SYMBOLS` | `XAUUSD,BTCUSD` | Symbols eligible for BUY/SELL technical alerts |
 | `INDEX_REPORT_SYMBOLS` | Ten stock indices | Price reports only; excluded from trade signals and performance |
 | `TIMEFRAME` | `H1` | Primary trigger timeframe: M1 M5 M15 M30 H1 H4 D1 |
 | `STRATEGY_VERSION` | `v4-mtf-trigger-accuracy` | Separates performance after strategy changes |
@@ -67,7 +69,6 @@ All settings live in `.env` — see `.env.example` for every option.
 
 | Market | Symbols |
 |---|---|
-| Forex | EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF |
 | Metals | XAUUSD |
 | Cryptocurrency | BTCUSD |
 | Indices | THAISET, US500, NAS100, DOW30, FTSE100, DAX40, NIKKEI225, SHANGHAI, HANGSENG, ASX200 |

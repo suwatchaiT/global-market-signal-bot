@@ -28,6 +28,7 @@ import index_report
 import notifier
 import risk
 import check_once
+import weekly_report
 from signals import Signal, _macd_confirms, confirm_timeframes, timeframe_vote
 
 
@@ -124,6 +125,48 @@ class DiscordNotifierTests(unittest.TestCase):
         signal = Signal("EURUSD", "RSI", "SELL", "test")
         self.assertTrue(notifier._send_discord_signal(signal))
         self.assertIn("json", post.call_args.kwargs)
+
+
+class WeeklyPerformanceTests(unittest.TestCase):
+    def test_only_gold_and_bitcoin_receive_technical_signals(self):
+        self.assertEqual(config.TECHNICAL_SIGNAL_SYMBOLS, ("XAUUSD", "BTCUSD"))
+
+    def test_weekly_report_breaks_down_requested_dimensions(self):
+        state = {"signal_journal": [
+            {
+                "id": "gold-win", "strategy_version": config.STRATEGY_VERSION,
+                "symbol": "XAUUSD", "direction": "BUY", "signal_type": "MACD_CROSS",
+                "opened_at": "2026-10-20T03:00:00+00:00",
+                "closed_at": "2026-10-20T05:00:00+00:00",
+                "status": "WIN", "r_multiple": 2.0,
+            },
+            {
+                "id": "btc-loss", "strategy_version": config.STRATEGY_VERSION,
+                "symbol": "BTCUSD", "direction": "SELL", "signal_type": "RSI",
+                "opened_at": "2026-10-21T14:00:00+00:00",
+                "closed_at": "2026-10-21T16:00:00+00:00",
+                "status": "LOSS", "r_multiple": -1.0,
+            },
+        ]}
+        report = weekly_report.build_report(
+            state, datetime(2026, 10, 26, 2, 0, tzinfo=timezone.utc)
+        )
+        self.assertIn("Overall: <b>1W/1L | 50.0% | +1.0R</b>", report)
+        self.assertIn("<b>By symbol</b>", report)
+        self.assertIn("• XAUUSD: 1W/0L | 100.0% | +2.0R", report)
+        self.assertIn("<b>BUY vs SELL</b>", report)
+        self.assertIn("<b>By trigger</b>", report)
+        self.assertIn("<b>By session</b>", report)
+        self.assertIn("Evening 20:00–23:00", report)
+
+    @patch("weekly_report.notifier.send_text", return_value=True)
+    def test_weekly_report_is_sent_once_on_monday(self, send_text):
+        state: dict = {}
+        now = datetime(2026, 10, 26, 2, 0, tzinfo=timezone.utc)
+        weekly_report.maybe_send(state, now)
+        weekly_report.maybe_send(state, now)
+        send_text.assert_called_once()
+        self.assertIn("last_weekly_performance", state)
 
 
 class IndexReportTests(unittest.TestCase):
