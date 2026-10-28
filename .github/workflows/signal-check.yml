@@ -24,6 +24,11 @@ on:
         required: false
         type: boolean
         default: false
+      send_performance_report:
+        description: Send current trigger performance to Discord
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: signal-check
@@ -72,8 +77,14 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python send_test_notification.py
 
+      - name: Send Discord trigger performance report
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_performance_report }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python send_performance_report.py
+
       - name: Run signal check
-        if: ${{ !inputs.send_test_message }}
+        if: ${{ !inputs.send_test_message && !inputs.send_performance_report }}
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -82,7 +93,7 @@ jobs:
         run: python check_once.py
 
       - name: Save alert state
-        if: ${{ always() && !inputs.send_test_message }}
+        if: ${{ always() && !inputs.send_test_message && !inputs.send_performance_report }}
         uses: actions/cache/save@v5
         with:
           path: state.json
