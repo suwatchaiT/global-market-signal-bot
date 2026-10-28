@@ -4,12 +4,12 @@ This document describes the implemented strategy in a model-independent form so 
 
 ## 1. Purpose and scope
 
-Generate informational BUY/SELL alerts for forex, gold, and Bitcoin from closed Yahoo Finance candles. Stock indices are excluded from technical trade signals; they receive separate market-open and market-close price-change reports.
+Generate informational BUY/SELL alerts for gold and Bitcoin from closed Yahoo Finance candles. Stock indices and forex pairs are excluded from technical trade signals. The configured stock indices receive separate market-open and market-close price-change reports.
 
 Default technical-signal symbols:
 
 ```text
-EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF, XAUUSD, BTCUSD
+XAUUSD, BTCUSD
 ```
 
 Default index-report symbols:
@@ -39,6 +39,9 @@ NIKKEI225, SHANGHAI, HANGSENG, ASX200
 | Stop distance | 1.5 × ATR |
 | Target distance | 3.0 × ATR |
 | Nominal reward:risk | 2.0 |
+| Outbound channel | Discord webhook |
+| Signal chart | M15, latest 96 candles |
+| Weekly report time | Monday at/after 08:30 Thailand time |
 
 Only completed candles are used. A currently forming final candle must be discarded.
 
@@ -168,7 +171,7 @@ Two duplicate protections apply:
 1. Journal identity: `symbol | direction | trigger_time`. The same trigger candle cannot be recorded twice.
 2. Cooldown identity: `symbol | signal_type | direction`. The default cooldown is `6 hours` (`LOOKBACK_BARS × 1 hour`).
 
-Record a signal only after notification delivery succeeds.
+Record a signal only after notification delivery succeeds. Each Discord trade alert contains the formatted signal and an attached M15 PNG chart showing candlesticks, EMA9, EMA21, SL, and TP. If chart data or rendering is unavailable, deliver the text signal rather than discarding the alert.
 
 ## 10. Performance scoring
 
@@ -184,6 +187,25 @@ For each open signal, examine later closed H1 candles:
 
 These are candle-touch estimates, not broker fills.
 
+### Weekly Discord performance report
+
+On Monday at or after 08:30 Thailand time, send one report for the previous Thailand-time Monday–Sunday week. Include only current-strategy signals whose result changed to WIN or LOSS during that week; do not count open signals until they close.
+
+The report shows overall and grouped results for:
+
+1. Symbol (`XAUUSD`, `BTCUSD`).
+2. Direction (`BUY`, `SELL`).
+3. Trigger type (`MA_CROSS`, `RSI`, `MACD_CROSS`, or a same-candle combination).
+4. Trading session (`Day 08:30–17:00`, `Evening 20:00–23:00`, or `Other`) using Thailand entry time.
+
+Every group displays:
+
+```text
+wins / losses | win rate | net R
+```
+
+Deduplicate the report by previous-week date range and `strategy_version`.
+
 ## 11. Stock-index open/close reports
 
 Indices do not generate BUY/SELL technical signals. Near each exchange's regular-session open and close, calculate:
@@ -198,7 +220,7 @@ Use the session open for an OPEN report and the latest session price for a CLOSE
 ## 12. Reference decision flow
 
 ```text
-for each non-index symbol:
+for each configured technical symbol (XAUUSD and BTCUSD):
     load closed H1 candles
     evaluate existing open journal records
     load closed H4 candles
@@ -217,8 +239,14 @@ for each non-index symbol:
 
         calculate ATR stop, target, and size estimate
         reject duplicate trigger or active cooldown
-        send notification
+        send Discord notification with M15 chart
         if delivery succeeds, record versioned signal
+
+every Monday at/after 08:30 Thailand time:
+    select current-version signals closed during the previous Monday–Sunday
+    group by symbol, direction, trigger type, and Thailand trading session
+    calculate wins, losses, win rate, and net R
+    send once to Discord
 ```
 
 ## 13. Portable implementation prompt
@@ -235,7 +263,10 @@ time/price. Do not combine indicator triggers from different candles. Treat
 missing confirmation data as a failed vote. Make every default configurable
 through environment variables. Add deterministic unit tests for BUY and SELL
 crosses, RSI exits, same-candle grouping, H4 rejection, 4-of-5 confirmation,
-duplicate prevention, and conservative same-candle SL/TP scoring.
+duplicate prevention, conservative same-candle SL/TP scoring, Discord chart
+fallback, and weekly performance grouping. The default technical-signal scope
+must contain only XAUUSD and BTCUSD. Keep stock-index open/close reporting
+separate from technical BUY/SELL analysis.
 ```
 
 ## 14. Limitations
