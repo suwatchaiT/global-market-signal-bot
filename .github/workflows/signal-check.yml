@@ -29,6 +29,11 @@ on:
         required: false
         type: boolean
         default: false
+      reset_performance_history:
+        description: Reset all signal history (XAUUSD/BTCUSD fresh start)
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: signal-check
@@ -72,19 +77,23 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Send Discord test signal with chart
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_message }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_message && !inputs.reset_performance_history }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python send_test_notification.py
 
       - name: Send Discord trigger performance report
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_performance_report }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_performance_report && !inputs.reset_performance_history }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python send_performance_report.py
 
+      - name: Reset signal performance history
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.reset_performance_history }}
+        run: python reset_performance_history.py
+
       - name: Run signal check
-        if: ${{ !inputs.send_test_message && !inputs.send_performance_report }}
+        if: ${{ !inputs.send_test_message && !inputs.send_performance_report && !inputs.reset_performance_history }}
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -93,7 +102,7 @@ jobs:
         run: python check_once.py
 
       - name: Save alert state
-        if: ${{ always() && !inputs.send_test_message && !inputs.send_performance_report }}
+        if: ${{ always() && ((!inputs.send_test_message && !inputs.send_performance_report) || inputs.reset_performance_history) }}
         uses: actions/cache/save@v5
         with:
           path: state.json
