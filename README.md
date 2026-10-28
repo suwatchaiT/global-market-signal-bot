@@ -94,6 +94,10 @@ Variables** when you want values other than the defaults above.
 4. Keep the Actions variable `NOTIFICATION_CHANNEL` set to `discord` (the workflow default).
 5. To verify delivery, open **Actions → Global market signal check → Run workflow**, enable **Send only a Discord test signal with chart**, and run it.
 
+To request the current performance immediately, run the same workflow with
+**Send current trigger performance to Discord** enabled. It sends the current
+strategy totals, the latest 20 signals, and the previous-week grouped report.
+
 Discord webhooks support outbound alerts and scheduled reports without an awake computer. Incoming `/status` and `/performance` commands remain Telegram-only; scheduled heartbeat and performance information is still delivered to Discord.
 
 ## Telegram commands

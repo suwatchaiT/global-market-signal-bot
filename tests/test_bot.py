@@ -29,6 +29,7 @@ import notifier
 import risk
 import check_once
 import weekly_report
+import send_performance_report
 from signals import Signal, _macd_confirms, confirm_timeframes, timeframe_vote
 
 
@@ -128,7 +129,7 @@ class DiscordNotifierTests(unittest.TestCase):
 
 
 class WeeklyPerformanceTests(unittest.TestCase):
-    def test_only_gold_and_bitcoin_receive_technical_signals(self):
+    def test_only_selected_symbols_receive_technical_signals(self):
         self.assertEqual(config.TECHNICAL_SIGNAL_SYMBOLS, ("XAUUSD", "BTCUSD"))
 
     def test_weekly_report_breaks_down_requested_dimensions(self):
@@ -167,6 +168,21 @@ class WeeklyPerformanceTests(unittest.TestCase):
         weekly_report.maybe_send(state, now)
         send_text.assert_called_once()
         self.assertIn("last_weekly_performance", state)
+
+
+class ManualPerformanceReportTests(unittest.TestCase):
+    @patch("send_performance_report.weekly_report.build_report", return_value="weekly")
+    @patch("send_performance_report.journal.performance_table", return_value="table")
+    @patch("send_performance_report.journal.summary", return_value="summary")
+    @patch("send_performance_report.notifier.send_text", return_value=True)
+    def test_manual_report_sends_summary_table_and_weekly_breakdown(
+        self, send_text, summary, table, weekly
+    ):
+        self.assertTrue(send_performance_report.send_report({}))
+        self.assertEqual(
+            [call.args[0] for call in send_text.call_args_list],
+            ["summary", "table", "weekly"],
+        )
 
 
 class IndexReportTests(unittest.TestCase):
@@ -261,7 +277,6 @@ class RiskTests(unittest.TestCase):
         self.assertGreater(money, 0)
         self.assertEqual(units, 0)
         self.assertEqual(lots, 0)
-
 
 class JournalTests(unittest.TestCase):
     def test_duplicate_signal_ids_are_recorded_once(self):
