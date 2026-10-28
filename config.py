@@ -16,7 +16,7 @@ DISCORD_USERNAME = os.getenv("DISCORD_USERNAME", "Global Market Signal Bot")
 # Symbols to monitor
 SYMBOLS = os.getenv(
     "SYMBOLS",
-    "XAUUSD,BTCUSD,"
+    "XAUUSD,BTCUSD,USTEC,"
     "THAISET,US500,NAS100,DOW30,FTSE100,DAX40,"
     "NIKKEI225,SHANGHAI,HANGSENG,ASX200",
 ).split(",")
@@ -25,7 +25,7 @@ SYMBOLS = os.getenv(
 # SYMBOLS remain available for open/close reports and heartbeat prices.
 TECHNICAL_SIGNAL_SYMBOLS = tuple(
     value.strip().upper()
-    for value in os.getenv("TECHNICAL_SIGNAL_SYMBOLS", "XAUUSD,BTCUSD").split(",")
+    for value in os.getenv("TECHNICAL_SIGNAL_SYMBOLS", "XAUUSD,BTCUSD,USTEC").split(",")
     if value.strip()
 )
 

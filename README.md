@@ -42,8 +42,8 @@ All settings live in `.env` — see `.env.example` for every option.
 | `DISCORD_USERNAME` | `Global Market Signal Bot` | Display name used by the Discord webhook |
 | `TELEGRAM_TOKEN` | — | BotFather token |
 | `TELEGRAM_CHAT_ID` | — | Your chat or channel ID |
-| `SYMBOLS` | XAUUSD, BTCUSD, and ten indices | Comma-separated symbols used by signals, heartbeat, and index reports |
-| `TECHNICAL_SIGNAL_SYMBOLS` | `XAUUSD,BTCUSD` | Symbols eligible for BUY/SELL technical alerts |
+| `SYMBOLS` | XAUUSD, BTCUSD, USTEC, and ten indices | Comma-separated symbols used by signals, heartbeat, and index reports |
+| `TECHNICAL_SIGNAL_SYMBOLS` | `XAUUSD,BTCUSD,USTEC` | Symbols eligible for BUY/SELL technical alerts |
 | `INDEX_REPORT_SYMBOLS` | Ten stock indices | Price reports only; excluded from trade signals and performance |
 | `TIMEFRAME` | `H1` | Primary trigger timeframe: M1 M5 M15 M30 H1 H4 D1 |
 | `STRATEGY_VERSION` | `v4-mtf-trigger-accuracy` | Separates performance after strategy changes |
@@ -71,6 +71,7 @@ All settings live in `.env` — see `.env.example` for every option.
 |---|---|
 | Metals | XAUUSD |
 | Cryptocurrency | BTCUSD |
+| Technical index signal | USTEC (Nasdaq-100) |
 | Indices | THAISET, US500, NAS100, DOW30, FTSE100, DAX40, NIKKEI225, SHANGHAI, HANGSENG, ASX200 |
 
 Other supported symbols include USDCAD, NZDUSD, XAGUSD, and ETHUSD. Yahoo Finance tickers can also be used directly.
