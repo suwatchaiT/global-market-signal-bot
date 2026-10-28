@@ -46,7 +46,6 @@ class DataFeedTests(unittest.TestCase):
         self.assertEqual(data_feed.yahoo_ticker("THAISET"), "^SET.BK")
         self.assertEqual(data_feed.yahoo_ticker("US500"), "^GSPC")
         self.assertEqual(data_feed.yahoo_ticker("NAS100"), "^NDX")
-        self.assertEqual(data_feed.yahoo_ticker("USTEC"), "^NDX")
         self.assertEqual(data_feed.yahoo_ticker("NIKKEI225"), "^N225")
         self.assertEqual(data_feed.yahoo_ticker("SHANGHAI"), "000001.SS")
         self.assertEqual(data_feed.yahoo_ticker("DOW30"), "^DJI")
@@ -129,8 +128,8 @@ class DiscordNotifierTests(unittest.TestCase):
 
 
 class WeeklyPerformanceTests(unittest.TestCase):
-    def test_only_selected_symbols_receive_technical_signals(self):
-        self.assertEqual(config.TECHNICAL_SIGNAL_SYMBOLS, ("XAUUSD", "BTCUSD", "USTEC"))
+    def test_only_gold_and_bitcoin_receive_technical_signals(self):
+        self.assertEqual(config.TECHNICAL_SIGNAL_SYMBOLS, ("XAUUSD", "BTCUSD"))
 
     def test_weekly_report_breaks_down_requested_dimensions(self):
         state = {"signal_journal": [
@@ -259,12 +258,6 @@ class RiskTests(unittest.TestCase):
 
     def test_index_lot_size_is_suppressed(self):
         money, units, lots = risk.estimate("US500", 6000, 5950)
-        self.assertGreater(money, 0)
-        self.assertEqual(units, 0)
-        self.assertEqual(lots, 0)
-
-    def test_ustec_lot_size_is_suppressed(self):
-        money, units, lots = risk.estimate("USTEC", 25_000, 24_800)
         self.assertGreater(money, 0)
         self.assertEqual(units, 0)
         self.assertEqual(lots, 0)

@@ -9,7 +9,7 @@ _CONTRACT_SIZE = {
     "BTCUSD": 1.0,
     "ETHUSD": 1.0,
 }
-_INDEX_SYMBOLS = {"THAISET", "US500", "NAS100", "USTEC", "NIKKEI225", "SHANGHAI"}
+_INDEX_SYMBOLS = {"THAISET", "US500", "NAS100", "NIKKEI225", "SHANGHAI"}
 
 
 def estimate(symbol: str, entry: float, stop: float) -> tuple[float, float, float]:

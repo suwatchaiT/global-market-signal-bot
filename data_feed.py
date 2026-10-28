@@ -24,7 +24,6 @@ _SYMBOL_MAP = {
     "THAISET": "^SET.BK",
     "US500": "^GSPC",
     "NAS100": "^NDX",
-    "USTEC": "^NDX",  # Nasdaq-100 technical-signal alias
     "DOW30": "^DJI",
     "FTSE100": "^FTSE",
     "DAX40": "^GDAXI",
