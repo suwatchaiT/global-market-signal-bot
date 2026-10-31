@@ -29,6 +29,7 @@ import notifier
 import risk
 import check_once
 import weekly_report
+import reset_performance_history
 import send_performance_report
 from signals import Signal, _macd_confirms, confirm_timeframes, timeframe_vote
 
@@ -131,6 +132,24 @@ class DiscordNotifierTests(unittest.TestCase):
 class WeeklyPerformanceTests(unittest.TestCase):
     def test_only_selected_symbols_receive_technical_signals(self):
         self.assertEqual(config.TECHNICAL_SIGNAL_SYMBOLS, ("XAUUSD", "BTCUSD"))
+
+    def test_history_reset_preserves_report_state_and_clears_signal_data(self):
+        state = {
+            "signal_journal": [{"symbol": "XAUUSD"}, {"symbol": "BTCUSD"}],
+            "XAUUSD|RSI|BUY": 123,
+            "BTCUSD|MACD_CROSS|SELL": 456,
+            "last_weekly_performance": "2026-W43",
+            "last_heartbeat": "2026-10-28",
+            "index_report_US500_close_2026-10-27": True,
+        }
+        cleaned, removed = reset_performance_history.reset_state(state)
+        self.assertEqual(removed, 2)
+        self.assertEqual(cleaned["signal_journal"], [])
+        self.assertNotIn("XAUUSD|RSI|BUY", cleaned)
+        self.assertNotIn("BTCUSD|MACD_CROSS|SELL", cleaned)
+        self.assertNotIn("last_weekly_performance", cleaned)
+        self.assertEqual(cleaned["last_heartbeat"], "2026-10-28")
+        self.assertTrue(cleaned["index_report_US500_close_2026-10-27"])
 
     def test_weekly_report_breaks_down_requested_dimensions(self):
         state = {"signal_journal": [

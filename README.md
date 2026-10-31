@@ -98,6 +98,12 @@ To request the current performance immediately, run the same workflow with
 **Send current trigger performance to Discord** enabled. It sends the current
 strategy totals, the latest 20 signals, and the previous-week grouped report.
 
+To start a fresh XAUUSD/BTCUSD performance record, run the workflow manually
+with **Reset all signal history (XAUUSD/BTCUSD fresh start)** enabled. It clears
+recorded signals and their cooldowns, while preserving heartbeat and stock-index
+open/close report state. Technical BUY/SELL analysis remains limited to
+`XAUUSD,BTCUSD`.
+
 Discord webhooks support outbound alerts and scheduled reports without an awake computer. Incoming `/status` and `/performance` commands remain Telegram-only; scheduled heartbeat and performance information is still delivered to Discord.
 
 ## Telegram commands
