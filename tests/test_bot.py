@@ -252,6 +252,11 @@ class SignalFilterTests(unittest.TestCase):
         values = [100 + i * 0.2 for i in range(60)]
         return pd.DataFrame({"close": values})
 
+    def test_v5_relaxed_defaults(self):
+        self.assertEqual(config.STRATEGY_VERSION, "v5-relaxed-mtf")
+        self.assertEqual(config.MIN_TIMEFRAME_CONFIRMATIONS, 3)
+        self.assertFalse(config.REQUIRE_MACD_CONFIRMATION)
+
     @patch("config.MIN_TIMEFRAME_CONFIRMATIONS", 4)
     @patch("config.CONFIRMATION_TIMEFRAMES", ("M1", "M5", "M15", "M30", "H1"))
     def test_four_of_five_timeframes_confirm(self):

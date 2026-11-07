@@ -10,7 +10,7 @@ A GitHub-hosted technical-analysis bot that monitors global forex, metals, crypt
 - RSI overbought / oversold zones
 - MACD signal-line crossover
 - Exact trigger-candle time/price, kept separately from the later entry snapshot
-- H1 trigger candidates confirmed by M1/M5/M15/M30/H1 voting (4 of 5 by default)
+- H1 trigger candidates confirmed by M1/M5/M15/M30/H1 voting (3 of 5 by default)
 - Closed-candle evaluation with higher-timeframe trend and MACD direction confirmation
 - ATR stop/target and risk-based position-size estimates
 - Strategy-versioned signal journal with `/performance` win-rate and R-multiple summary
@@ -46,9 +46,9 @@ All settings live in `.env` — see `.env.example` for every option.
 | `TECHNICAL_SIGNAL_SYMBOLS` | `XAUUSD,BTCUSD` | Symbols eligible for BUY/SELL technical alerts |
 | `INDEX_REPORT_SYMBOLS` | Ten stock indices | Price reports only; excluded from trade signals and performance |
 | `TIMEFRAME` | `H1` | Primary trigger timeframe: M1 M5 M15 M30 H1 H4 D1 |
-| `STRATEGY_VERSION` | `v4-mtf-trigger-accuracy` | Separates performance after strategy changes |
+| `STRATEGY_VERSION` | `v5-relaxed-mtf` | Separates performance after strategy changes |
 | `CONFIRMATION_TIMEFRAMES` | `M1,M5,M15,M30,H1` | Closed-candle timeframes that vote on a candidate |
-| `MIN_TIMEFRAME_CONFIRMATIONS` | `4` | Minimum agreeing timeframe votes |
+| `MIN_TIMEFRAME_CONFIRMATIONS` | `3` | Minimum agreeing timeframe votes |
 | `MA_FAST` / `MA_SLOW` | `9` / `21` | EMA periods |
 | `RSI_PERIOD` | `14` | RSI lookback |
 | `RSI_OVERBOUGHT` / `RSI_OVERSOLD` | `70` / `30` | RSI thresholds |
@@ -57,7 +57,7 @@ All settings live in `.env` — see `.env.example` for every option.
 | `POLL_INTERVAL` | `60` | Seconds between checks |
 | `HIGHER_TIMEFRAME` | `H4` | Trend-confirmation timeframe |
 | `REQUIRE_HTF_CONFIRMATION` | `true` | Reject signals against the higher-timeframe EMA trend |
-| `REQUIRE_MACD_CONFIRMATION` | `true` | Require MACD to agree with BUY/SELL direction |
+| `REQUIRE_MACD_CONFIRMATION` | `false` | Optional extra MACD direction gate; MACD still contributes to confluence and timeframe votes |
 | `ACCOUNT_BALANCE` | `10000` | Balance used only for position-size estimates |
 | `RISK_PERCENT` | `1` | Estimated account risk per signal |
 | `ALERT_START_HOUR` / `ALERT_START_MINUTE` | `8` / `30` | Daytime-window start (Thailand time) |
