@@ -1,6 +1,6 @@
 # Global Market Signal Bot — Trigger Specification
 
-This document describes the implemented strategy in a model-independent form so another AI or developer can reproduce it. The current strategy version is `v4-mtf-trigger-accuracy`.
+This document describes the implemented strategy in a model-independent form so another AI or developer can reproduce it. The current strategy version is `v5-relaxed-mtf`.
 
 ## 1. Purpose and scope
 
@@ -31,9 +31,9 @@ NIKKEI225, SHANGHAI, HANGSENG, ASX200
 | MACD fast / slow / signal | 12 / 26 / 9 |
 | Higher timeframe | H4 |
 | Require H4 agreement | Yes |
-| Require current H1 MACD agreement | Yes |
+| Require current H1 MACD agreement | No (MACD remains part of confluence) |
 | Confirmation timeframes | M1, M5, M15, M30, H1 |
-| Required timeframe votes | 4 of 5 |
+| Required timeframe votes | 3 of 5 |
 | Minimum confluence | 2 of 3 indicators |
 | ATR period | 14 |
 | Stop distance | 1.5 × ATR |
@@ -109,7 +109,8 @@ The RSI rule above is intentional: below 50 is treated as room to move upward, w
 
 The confluence score (`stars`) is the number of these three states matching the candidate direction. Reject candidates with fewer than 2 stars.
 
-When MACD confirmation is enabled, the current H1 MACD state must also match the candidate direction.
+The separate H1 MACD direction gate is disabled by default in v5. MACD still
+contributes to the three-indicator confluence score and every timeframe vote.
 
 ## 6. H4 trend gate
 
@@ -135,7 +136,7 @@ MACD state = BUY if MACD_line > MACD_signal, otherwise SELL
 
 The timeframe votes for the candidate when at least two of its three indicator states match the candidate direction. Missing or insufficient data is a failed vote.
 
-Send the signal only when at least four of the five timeframes vote for it.
+Send the signal only when at least three of the five timeframes vote for it.
 
 > GitHub Actions runs approximately every 15 minutes. M1 is therefore sampled at execution time; it is not continuously monitored every minute.
 

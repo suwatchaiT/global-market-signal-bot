@@ -44,13 +44,13 @@ INDEX_REPORT_SYMBOLS = tuple(
 TIMEFRAME = os.getenv("TIMEFRAME", "H1")
 
 # Version every strategy change so results from different rule sets are not mixed.
-STRATEGY_VERSION = os.getenv("STRATEGY_VERSION", "v4-mtf-trigger-accuracy")
+STRATEGY_VERSION = os.getenv("STRATEGY_VERSION", "v5-relaxed-mtf")
 CONFIRMATION_TIMEFRAMES = tuple(
     value.strip().upper()
     for value in os.getenv("CONFIRMATION_TIMEFRAMES", "M1,M5,M15,M30,H1").split(",")
     if value.strip()
 )
-MIN_TIMEFRAME_CONFIRMATIONS = int(os.getenv("MIN_TIMEFRAME_CONFIRMATIONS", "4"))
+MIN_TIMEFRAME_CONFIRMATIONS = int(os.getenv("MIN_TIMEFRAME_CONFIRMATIONS", "3"))
 
 # Indicator settings
 MA_FAST = int(os.getenv("MA_FAST", "9"))
@@ -94,7 +94,7 @@ HIGHER_TIMEFRAME = os.getenv("HIGHER_TIMEFRAME", "H4")
 REQUIRE_HTF_CONFIRMATION = os.getenv("REQUIRE_HTF_CONFIRMATION", "true").lower() in (
     "1", "true", "yes", "on"
 )
-REQUIRE_MACD_CONFIRMATION = os.getenv("REQUIRE_MACD_CONFIRMATION", "true").lower() in (
+REQUIRE_MACD_CONFIRMATION = os.getenv("REQUIRE_MACD_CONFIRMATION", "false").lower() in (
     "1", "true", "yes", "on"
 )
 
